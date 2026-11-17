@@ -159,10 +159,15 @@ function update() {
     if (gameState === "attack") {
         // Hjärtat styr
         const heartSpeed = 7;
-        if (keys["ArrowUp"] && heartY > 350) heartY -= heartSpeed;
-        if (keys["ArrowDown"] && heartY < 550) heartY += heartSpeed;
-        if (keys["ArrowLeft"] && heartX > 100) heartX -= heartSpeed;
-        if (keys["ArrowRight"] && heartX < 700) heartX += heartSpeed;
+        const arenaX = 100;
+        const arenaY = 350;
+        const arenaWidth = 600;
+        const arenaHeight = 200;
+        
+        if (keys["ArrowUp"] && heartY - heartSize > arenaY) heartY -= heartSpeed;
+        if (keys["ArrowDown"] && heartY + heartSize < arenaY + arenaHeight) heartY += heartSpeed;
+        if (keys["ArrowLeft"] && heartX - heartSize > arenaX) heartX -= heartSpeed;
+        if (keys["ArrowRight"] && heartX + heartSize < arenaX + arenaWidth) heartX += heartSpeed;
     }
 }
 
