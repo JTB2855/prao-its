@@ -31,7 +31,7 @@ let currentRoom = 0;
 // Rum-data 
 const rooms = [
     { name: "Intro - Fallning", description: "Du trillar ner i brunnen...", spawnX: 400, spawnY: 300 },
-    { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
+    { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300, spawnX: 300, spawnY: 300 },
     { name: "Farmors hus", description: "Du är här. 3 vägar vidare", npc: "Farmor", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "By söderut", description: "Orange drake här", npc: "Drake", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Grotta höger", description: "Skelett längre in", npc: "Papyrus", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
