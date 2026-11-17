@@ -1,9 +1,35 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
 
-// Ladda sprite sheet
-const spriteSheet = new Image();
-spriteSheet.src = "images/huvudperson.png";
+// Ladda character frames för höger och ner
+const charaFrames = {
+    0: null, // upp (stillframe senare)
+    1: [], // höger (8 frames)
+    2: [], // ner (7 frames)
+    3: null  // vänster (stillframe senare)
+};
+
+// Ladda höger-frames (1-8)
+for (let i = 1; i <= 8; i++) {
+    const img = new Image();
+    img.src = `images/chara_höger_${i}.png`;
+    charaFrames[1].push(img);
+}
+
+// Ladda ner-frames (1-7)
+for (let i = 1; i <= 7; i++) {
+    const img = new Image();
+    img.src = `images/chara_ner_${i}.png`;
+    charaFrames[2].push(img);
+}
+
+// Stillframes för upp och vänster
+const stillFrames = {
+    0: new Image(), // upp
+    3: new Image()  // vänster
+};
+stillFrames[0].src = "images/chara upp.png";
+stillFrames[3].src = "images/chara vänster.png";
 
 // Spelarens position
 let playerX = canvas.width / 2;
@@ -74,11 +100,12 @@ function update() {
         moved = true;
     }
 
-    // Uppdatera animering
-    if (moved) {
+    // Uppdatera animering - bara för höger (1) och ner (2)
+    if (moved && (currentDirection === 1 || currentDirection === 2)) {
         animationCounter++;
         if (animationCounter >= animationSpeed) {
-            animationFrame = (animationFrame + 1) % 8;
+            const maxFrames = currentDirection === 1 ? 8 : 7;
+            animationFrame = (animationFrame + 1) % maxFrames;
             animationCounter = 0;
         }
     } else {
@@ -135,23 +162,25 @@ function draw() {
         ctx.fillText(rooms[currentRoom].npc, npcX, npcY + 25);
     }
 
-    // Rita Chara från sprite sheet
-    if (spriteSheet.complete) {
-        // Sprite sheet: 8 frames bred, 5 rader höga (ner, höger, upp, vänster, extra)
-        const frameWidth = spriteSheet.width / 8;
-        const frameHeight = spriteSheet.height / 5;
-        
-        // Mappa riktning till rad
-        const directionMap = [2, 1, 0, 3]; // upp->rad2, höger->rad1, ner->rad0, vänster->rad3
-        
-        const sourceX = animationFrame * frameWidth;
-        const sourceY = directionMap[currentDirection] * frameHeight;
-        
-        ctx.drawImage(
-            spriteSheet,
-            sourceX, sourceY, frameWidth, frameHeight,
-            playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
-        );
+    // Rita Chara
+    if (currentDirection === 1 || currentDirection === 2) {
+        // Höger eller ner - använd animerade frames
+        const frames = charaFrames[currentDirection];
+        if (frames.length > 0 && frames[animationFrame].complete) {
+            ctx.drawImage(
+                frames[animationFrame],
+                playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
+            );
+        }
+    } else {
+        // Upp eller vänster - använd stillframe
+        const stillImg = stillFrames[currentDirection];
+        if (stillImg.complete) {
+            ctx.drawImage(
+                stillImg,
+                playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
+            );
+        }
     }
 
     // Instruktioner
