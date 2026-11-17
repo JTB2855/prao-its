@@ -79,8 +79,10 @@ window.addEventListener("keyup", (e) => {
 });
 
 function handleFightChoice() {
+    console.log("handleFightChoice körd, selectedButton:", selectedButton);
     if (selectedButton === 0) {
         // Fight - starta attack bar
+        console.log("Fight vald, går till attack-state");
         gameState = "attack";
         attackBarProgress = 0;
     } else {
