@@ -34,6 +34,11 @@ const farmorImage = new Image();
 farmorImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor.");
 farmorImage.src = "images/farmor.png";
 
+const farmorRescueImage = new Image();
+farmorRescueImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor vid räddningen.");
+farmorRescueImage.src = "images/farmor-raddning.png";
+const farmorRoomSize = 110;
+
 const flowieFaces = [floweyImage];
 for (const file of ["Flowey_battle_fatal_Genocide.webp", "flower-flowers.gif", "Flowey_battle_laugh.png"]) {
     const image = new Image();
@@ -172,10 +177,6 @@ function startBallStorm() {
 function rescuePlayer() {
     playerHP = Math.max(1, playerHP - 99);
     flowerAttacked = true;
-    stormBalls = [];
-    currentRoom = 2;
-    playerX = rooms[2].spawnX;
-    playerY = rooms[2].spawnY;
     gameState = "rescue";
 }
 
@@ -343,7 +344,7 @@ function draw() {
         if (rooms[currentRoom].npc === "Flowie") {
             drawCharacter(npcX, npcY, 64, floweyImage);
         } else if (rooms[currentRoom].npc === "Farmor") {
-            drawCharacter(npcX, npcY, 80, farmorImage);
+            drawCharacter(npcX, npcY, farmorRoomSize, farmorImage);
         } else {
             ctx.fillStyle = "#ff0000";
             ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
@@ -459,7 +460,7 @@ function drawCharacter(x, y, size, image) {
 
 function drawDialogue() {
     ctx.save();
-    const boxY = gameState === "rescue" ? 450 : 210;
+    const boxY = 210;
     ctx.fillStyle = "#000";
     ctx.fillRect(40, boxY, 720, 110);
     ctx.strokeStyle = "#fff";
@@ -486,7 +487,7 @@ function drawFarmorRoom() {
     if (farmorBackground.complete && farmorBackground.naturalWidth > 0) {
         ctx.drawImage(farmorBackground, 0, 0, canvas.width, canvas.height);
     }
-    drawCharacter(rooms[2].npcX, rooms[2].npcY, 80, farmorImage);
+    drawCharacter(rooms[2].npcX, rooms[2].npcY, farmorRoomSize, farmorImage);
     drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
     ctx.fillStyle = "#000";
     ctx.fillRect(12, 10, 160, 30);
@@ -499,16 +500,12 @@ function drawFarmorRoom() {
 }
 
 function drawAttackScene() {
-    if (gameState === "rescue") {
-        drawFarmorRoom();
-        return;
-    }
     // Battle arena bakgrund
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Arenan och hjärtat visas under försvar, inte vid menyval.
-    if (gameState === "attack" || gameState === "dialogue") {
+    if (gameState === "attack" || gameState === "dialogue" || gameState === "rescue") {
         const arenaX = 100;
         const arenaY = 350;
         const arenaWidth = 600;
@@ -532,9 +529,13 @@ function drawAttackScene() {
     }
 
     const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
-    drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
+    if (gameState === "rescue") {
+        drawCharacter(400, 110, 170, farmorRescueImage);
+    } else {
+        drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
+    }
 
-    if (gameState === "attack" && stormBalls.length > 0) {
+    if ((gameState === "attack" || gameState === "rescue") && stormBalls.length > 0) {
         ctx.fillStyle = "#fff";
         ctx.beginPath();
         for (const stormBall of stormBalls) {
@@ -542,11 +543,11 @@ function drawAttackScene() {
             ctx.arc(stormBall.x, stormBall.y, ball.radius, 0, Math.PI * 2);
         }
         ctx.fill();
-    } else if (gameState === "attack" || (gameState === "dialogue" && dialogueIndex >= 1 && dialogueIndex <= 3)) {
+    } else if (gameState === "attack" || gameState === "rescue" || (gameState === "dialogue" && dialogueIndex >= 1 && dialogueIndex <= 3)) {
         ctx.fillStyle = "#fff";
         ctx.beginPath();
-        ctx.arc(gameState === "attack" ? ball.x : 400,
-            gameState === "attack" ? ball.y : 370, ball.radius, 0, Math.PI * 2);
+        ctx.arc(gameState === "dialogue" ? 400 : ball.x,
+            gameState === "dialogue" ? 370 : ball.y, ball.radius, 0, Math.PI * 2);
         ctx.fill();
     }
     

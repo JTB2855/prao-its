@@ -27,9 +27,11 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-17 – gjord: "göra henne lite större när vi är i huset" – storleken ökad från 80 till 110.
+- 2026-11-17 – gjord: Vid räddningen "ha kvar allt från fighten mellan mig och flowie men byt ut flowie mot farmor med den här bilden" – bifogad 2791023-toriel.webp. Arenan och hjärtat är kvar, bollarna fryser utan mer skada. Z leder sedan till huset.
 - 2026-11-17 – gjord: "När vi är där kan vi byta ut Farmor bilden mot den här" – bifogad 400px-Toriel_Battle.webp.
 - 2026-11-17 – gjord: "Stanna vid fåtöljen" – Farmor följer inte med när spelaren går upp.
-- 2026-11-17 – gjord: "använd den här bilden som bakgrund när farmor räddar en" – bifogad bild av vardagsrummet.
+- 2026-11-17 – ersatt: "använd den här bilden som bakgrund när farmor räddar en" – vardagsrummet visas nu efter räddningsrepliken i stridsscenen.
 - 2026-11-17 – gjord: "Farmor ska stå vid Fotöljen" och spelaren går vidare genom gången uppåt. Mot väggarna upp, ner, höger och vänster stannar spelaren.
 - Får körsbärspaj (mat)
 - 2026-11-17 – ersatt: Från här finns 3 vägar vidare. Eleven valde i stället bara gången uppåt som utgång.
