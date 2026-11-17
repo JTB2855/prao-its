@@ -9,7 +9,7 @@ const charaImages = {
     3: new Image()  // vänster
 };
 charaImages[0].src = "images/chara upp.png";
-charaImages[1].src = "images/chara höger.png";
+charaImages[1].src = "images/chara_höger_1.png";
 charaImages[2].src = "images/chara ner.png";
 charaImages[3].src = "images/chara vänster.png";
 
