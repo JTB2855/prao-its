@@ -27,6 +27,7 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-17 – gjord: "den här används som bakgrund när man går upp i farmors hus" – bifogad köksbild visas fyra gånger större utan utjämning och med bevarade proportioner. Ursprunglig oskärpa finns kvar. Köket ersätter byn med Drake efter elevens ja; öppningen nedåt leder tillbaka.
 - 2026-11-17 – gjord: "göra henne lite större när vi är i huset" – storleken ökad från 80 till 110.
 - 2026-11-17 – gjord: Vid räddningen "ha kvar allt från fighten mellan mig och flowie men byt ut flowie mot farmor med den här bilden" – bifogad 2791023-toriel.webp. Arenan och hjärtat är kvar, bollarna fryser utan mer skada. Z leder sedan till huset.
 - 2026-11-17 – gjord: "När vi är där kan vi byta ut Farmor bilden mot den här" – bifogad 400px-Toriel_Battle.webp.
@@ -38,6 +39,7 @@
 - Status: **Ej gjord**
 
 ### 4. By – Söderut från farmor (vägen ner)
+- 2026-11-17 – ersatt: Detta rum är nu Farmors kök. Idéerna om Drake nedan sparas till senare.
 - **Drake** (Monster Kid)
 - Drake är trevlig och **blir din följare**
 - Om fel dialogval → fight (Drake 20 HP)

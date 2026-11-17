@@ -9,6 +9,11 @@ const farmorBackground = new Image();
 farmorBackground.onerror = () => console.error("Kunde inte ladda bakgrunden i Farmors hus.");
 farmorBackground.src = "images/farmors-rum.png";
 
+const kitchenBackground = new Image();
+kitchenBackground.onerror = () => console.error("Kunde inte ladda köksbilden.");
+kitchenBackground.src = "images/farmors-kok.png";
+const kitchen = { x: 98, y: 100, width: 604, height: 500 };
+
 // Ladda character stillframes
 const charaImages = {
     0: new Image(), // upp
@@ -87,7 +92,7 @@ const rooms = [
     { name: "Intro - Fallning", description: "Du trillar ner i brunnen...", spawnX: 400, spawnY: 300 },
     { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300, spawnX: 300, spawnY: 100 },
     { name: "Farmors hus", description: "Gången uppåt leder vidare", npc: "Farmor", npcX: 410, npcY: 230, spawnX: 560, spawnY: 330 },
-    { name: "By söderut", description: "Orange drake här", npc: "Drake", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
+    { name: "Farmors kök", description: "Gå tillbaka genom öppningen nedåt", npc: null, spawnX: 300, spawnY: 550 },
     { name: "Grotta höger", description: "Skelett längre in", npc: "Papyrus", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Snöbiom vänster", description: "Hundar här", npc: "Hundar", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Rum 7", description: "Tomt rum", npc: null, spawnX: 400, spawnY: 300 },
@@ -193,6 +198,18 @@ function canWalkInFarmorRoom(x, y) {
     return true;
 }
 
+function canWalkInKitchen(x, y) {
+    const halfSize = playerSize / 2;
+    for (const cornerX of [x - halfSize, x + halfSize]) {
+        for (const cornerY of [y - halfSize, y + halfSize]) {
+            const onFloor = cornerX >= 162 && cornerX <= 638 && cornerY >= 356 && cornerY <= 524;
+            const inDoorway = cornerX >= 242 && cornerX <= 358 && cornerY >= 500 && cornerY <= 700;
+            if (!onFloor && !inDoorway) return false;
+        }
+    }
+    return true;
+}
+
 function update(seconds = 1 / 60) {
     // Kolla om vi är nära Flowie i rummet
     if (currentRoom === 1 && gameState === "exploration" && !flowerAttacked) {
@@ -238,6 +255,17 @@ function update(seconds = 1 / 60) {
                 currentRoom = 3;
                 playerX = rooms[currentRoom].spawnX;
                 playerY = rooms[currentRoom].spawnY;
+            }
+            return;
+        }
+
+        if (currentRoom === 3) {
+            if (canWalkInKitchen(newX, playerY)) playerX = newX;
+            if (canWalkInKitchen(playerX, newY)) playerY = newY;
+            if (playerY - playerSize / 2 > canvas.height) {
+                currentRoom = 2;
+                playerX = 165;
+                playerY = 40;
             }
             return;
         }
@@ -317,6 +345,10 @@ function draw() {
 
     if (currentRoom === 2) {
         drawFarmorRoom();
+        return;
+    }
+    if (currentRoom === 3) {
+        drawKitchen();
         return;
     }
 
@@ -496,6 +528,18 @@ function drawFarmorRoom() {
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 32);
+    ctx.restore();
+}
+
+function drawKitchen() {
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+    if (kitchenBackground.complete && kitchenBackground.naturalWidth > 0) {
+        ctx.drawImage(kitchenBackground, kitchen.x, kitchen.y, kitchen.width, kitchen.height);
+    }
+    drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
     ctx.restore();
 }
 
