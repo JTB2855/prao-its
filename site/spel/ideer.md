@@ -87,6 +87,7 @@
 - Status: **Väntar på bildernas design**
 
 ## Grafikk
+- 2026-11-17 – gjord: "Använd den här bilden som farmor" – den bifogade bilden används vid räddningen och i Farmors rum.
 - 2026-11-17 – gjord: "Kan du använda den här som hjärta?" – den bifogade röda hjärtbilden används i striden, med bakgrunden borttagen.
 - 2026-11-17 – gjord: "använd den här som flowie bild" – den bifogade bilden används i rummet och i stridsscenen.
 - Alla karaktärer: **Pixlerade versioner**

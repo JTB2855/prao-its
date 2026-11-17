@@ -26,6 +26,10 @@ const floweyImage = new Image();
 floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
 floweyImage.src = "images/flowie.png";
 
+const farmorImage = new Image();
+farmorImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor.");
+farmorImage.src = "images/farmor.png";
+
 const flowieFaces = [floweyImage];
 for (const file of ["Flowey_battle_fatal_Genocide.webp", "flower-flowers.gif", "Flowey_battle_laugh.png"]) {
     const image = new Image();
@@ -301,7 +305,9 @@ function draw() {
         const npcX = rooms[currentRoom].npcX;
         const npcY = rooms[currentRoom].npcY;
         if (rooms[currentRoom].npc === "Flowie") {
-            drawFlowie(npcX, npcY, 64);
+            drawCharacter(npcX, npcY, 64, floweyImage);
+        } else if (rooms[currentRoom].npc === "Farmor") {
+            drawCharacter(npcX, npcY, 80, farmorImage);
         } else {
             ctx.fillStyle = "#ff0000";
             ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
@@ -309,7 +315,8 @@ function draw() {
         ctx.fillStyle = "#ffff00";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(rooms[currentRoom].npc, npcX, npcY + (rooms[currentRoom].npc === "Flowie" ? 45 : 25));
+        const labelOffset = rooms[currentRoom].npc === "Farmor" ? 55 : rooms[currentRoom].npc === "Flowie" ? 45 : 25;
+        ctx.fillText(rooms[currentRoom].npc, npcX, npcY + labelOffset);
     }
 
     // Rita Chara
@@ -403,7 +410,7 @@ function drawAttackBar() {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 }
 
-function drawFlowie(x, y, size, image = floweyImage) {
+function drawCharacter(x, y, size, image) {
     if (!image.complete || image.naturalWidth === 0) return;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -464,15 +471,14 @@ function drawAttackScene() {
     }
 
     if (gameState === "rescue") {
-        ctx.fillStyle = "#b98cdb";
-        ctx.fillRect(380, 70, 40, 70);
+        drawCharacter(400, 110, 150, farmorImage);
         ctx.fillStyle = "#fff";
         ctx.font = "20px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Farmor", 400, 175);
+        ctx.fillText("Farmor", 400, 200);
     } else {
         const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
-        drawFlowie(400, 110, 120, flowieFaces[faceIndex]);
+        drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
     }
 
     if (gameState === "attack" && stormBalls.length > 0) {
