@@ -16,7 +16,7 @@ Material och en publicerad webbplats för en PRAO-vecka på ITS för elever i å
 Eleven forkar repot (publikt) och arbetar i `site/spel/` tillsammans med en agent som skriver koden. Eleven ritar en skiss, agenten intervjuar eleven och bygger första versionen, och därefter förbättrar eleven spelet i testrundor. Varje push publiceras via GitHub Pages i elevens fork. Schemat med instruktioner per moment finns i `site/schema.html`.
 
 Den inre testloopen är att öppna hemsidan direkt från disk, till exempel genom att öppna `site/index.html` i webbläsaren. Alla sökvägar är relativa, så inga externa eller publicerade adresser behövs. Ändra, ladda om sidan och testa.
-#
+
 Om du vill jobba med filerna direkt i webbläsaren (men utan AI-stöd) så kan du byta ut ".com" till ".dev" i url, då slussas du vidare till https://vscode.dev/github/JTB2855/prao-its?vscode-lang=sv-se
 
 När du är nöjd lokalt gör du commit och push. Webbplatsen publiceras då automatiskt via GitHub Pages och då kan du se resultatet på https://JTB2855.github.io/prao-its/arbetssatt.html.
