@@ -197,14 +197,14 @@ function draw() {
 function drawFightMenu() {
     // Meny bakgrund
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-    ctx.fillRect(0, 350, canvas.width, 250);
+    ctx.fillRect(0, 450, canvas.width, 150);
     
     // Knapp-texter
     const buttons = ["Fight", "Act", "Item", "Mercy"];
     const buttonWidth = 140;
     const buttonHeight = 50;
     const startX = 80;
-    const startY = 380;
+    const startY = 470;
     const spacing = 170;
     
     for (let i = 0; i < 4; i++) {
@@ -231,7 +231,7 @@ function drawFightMenu() {
     ctx.fillStyle = "#fff";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Piltangenter: välja | Enter: välja", canvas.width / 2, 350);
+    ctx.fillText("Piltangenter: välja | Enter: välja", canvas.width / 2, 440);
 }
 
 function gameLoop() {
