@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 
 // Ladda sprite sheet
 const spriteSheet = new Image();
-spriteSheet.src = "images/sikael.png";
+spriteSheet.src = "images/huvudperson.webp";
 
 // Spelarens position
 let playerX = canvas.width / 2;
