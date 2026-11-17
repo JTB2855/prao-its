@@ -22,7 +22,8 @@ const heartImage = new Image();
 heartImage.src = "images/heart.png";
 
 const floweyImage = new Image();
-floweyImage.src = "images/flowey.png";
+floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
+floweyImage.src = "images/flowie.png";
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -200,12 +201,16 @@ function draw() {
     if (rooms[currentRoom].npc) {
         const npcX = rooms[currentRoom].npcX;
         const npcY = rooms[currentRoom].npcY;
-        ctx.fillStyle = "#ff0000";
-        ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
+        if (rooms[currentRoom].npc === "Flowie") {
+            drawFlowie(npcX, npcY, 64);
+        } else {
+            ctx.fillStyle = "#ff0000";
+            ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
+        }
         ctx.fillStyle = "#ffff00";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(rooms[currentRoom].npc, npcX, npcY + 25);
+        ctx.fillText(rooms[currentRoom].npc, npcX, npcY + (rooms[currentRoom].npc === "Flowie" ? 45 : 25));
     }
 
     // Rita Chara
@@ -308,6 +313,14 @@ function drawAttackBar() {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 }
 
+function drawFlowie(x, y, size) {
+    if (!floweyImage.complete || floweyImage.naturalWidth === 0) return;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(floweyImage, x - size / 2, y - size / 2, size, size);
+    ctx.restore();
+}
+
 function drawAttackScene() {
     // Battle arena bakgrund
     ctx.fillStyle = "#000";
@@ -324,12 +337,7 @@ function drawAttackScene() {
     ctx.strokeRect(arenaX, arenaY, arenaWidth, arenaHeight);
     
     // Flowie (statisk längst upp)
-    if (floweyImage.complete) {
-        ctx.drawImage(floweyImage, 380, 30, 40, 40);
-    } else {
-        ctx.fillStyle = "#ff0000";
-        ctx.fillRect(380, 30, 40, 40);
-    }
+    drawFlowie(400, 110, 120);
     
     // Hjärtat (spelaren styr)
     if (heartImage.complete) {

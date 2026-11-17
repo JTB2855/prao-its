@@ -81,6 +81,7 @@
 - Status: **Väntar på bildernas design**
 
 ## Grafikk
+- 2026-11-17 – gjord: "använd den här som flowie bild" – den bifogade bilden används i rummet och i stridsscenen.
 - Alla karaktärer: **Pixlerade versioner**
 - Status: **Eleven skaffar bilder**
 
@@ -91,4 +92,3 @@
 4. Lägga in HP-system
 5. Lägga in konversation och dialogval
 6. Lägga in fights
-
