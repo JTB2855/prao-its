@@ -31,9 +31,10 @@ let currentDirection = 2;
 let currentRoom = 1;
 
 // Game state
-let gameState = "exploration"; // "exploration" eller "fight"
+let gameState = "exploration"; // "exploration", "fight" eller "attack"
 let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
 let flowerAttacked = false;
+let attackBarProgress = 0; // 0-100
 
 // Rum-data 
 const rooms = [
@@ -63,6 +64,13 @@ window.addEventListener("keydown", (e) => {
             handleFightChoice();
         }
     }
+    
+    // Attack-bar
+    if (gameState === "attack") {
+        if (e.key === "z" || e.key === "Z") {
+            handleAttackBar();
+        }
+    }
 });
 
 window.addEventListener("keyup", (e) => {
@@ -71,8 +79,9 @@ window.addEventListener("keyup", (e) => {
 
 function handleFightChoice() {
     if (selectedButton === 0) {
-        // Fight - inget händer (Flowie är snäll)
-        console.log("Du försöker attackera, men Flowie är för snäll!");
+        // Fight - starta attack bar
+        gameState = "attack";
+        attackBarProgress = 0;
     } else if (selectedButton === 3) {
         // Mercy
         playerHP -= 99;
@@ -162,7 +171,7 @@ function draw() {
     ctx.fillText(rooms[currentRoom].description, 20, 60);
 
     // Rita NPC
-    if (rooms[currentRoom].npc && gameState === "exploration") {
+    if (rooms[currentRoom].npc) {
         const npcX = rooms[currentRoom].npcX;
         const npcY = rooms[currentRoom].npcY;
         ctx.fillStyle = "#ff0000";
@@ -191,6 +200,11 @@ function draw() {
     // Fight-meny
     if (gameState === "fight") {
         drawFightMenu();
+    }
+
+    // Attack-bar
+    if (gameState === "attack") {
+        drawAttackBar();
     }
 }
 
@@ -232,6 +246,51 @@ function drawFightMenu() {
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Piltangenter: välja | Z: välja", canvas.width / 2, 440);
+}
+
+function drawAttackBar() {
+    // Meny bakgrund
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.fillRect(0, 450, canvas.width, 150);
+    
+    // Instruktion
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Tryck Z när staven är grön!", canvas.width / 2, 480);
+    
+    // Attack-bar bakgrund
+    const barX = 100;
+    const barY = 520;
+    const barWidth = 600;
+    const barHeight = 40;
+    
+    ctx.fillStyle = "#333";
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    
+    // Rörlig grön del
+    attackBarProgress = (attackBarProgress + 3) % 100;
+    const greenWidth = 100; // Grön sektions bredd
+    const greenX = (attackBarProgress / 100) * barWidth;
+    
+    ctx.fillStyle = "#00ff00";
+    ctx.fillRect(barX + greenX, barY, greenWidth, barHeight);
+    
+    // Kant
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(barX, barY, barWidth, barHeight);
+}
+
+function handleAttackBar() {
+    // Kollar om man klickade när staven var grön (ungefär 20-80 procent av barWidth)
+    if (attackBarProgress > 20 && attackBarProgress < 80) {
+        console.log("Perfekt attack!");
+        gameState = "fight";
+    } else {
+        console.log("Du missade!");
+        gameState = "fight";
+    }
 }
 
 function gameLoop() {
