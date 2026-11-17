@@ -83,16 +83,9 @@ function handleFightChoice() {
         // Fight - starta attack bar
         gameState = "attack";
         attackBarProgress = 0;
-    } else if (selectedButton === 3) {
-        // Mercy
-        playerHP -= 99;
-        flowerAttacked = true;
-        setTimeout(() => {
-            gameState = "exploration";
-            currentRoom = 2; // Till Farmor
-            playerX = rooms[currentRoom].spawnX;
-            playerY = rooms[currentRoom].spawnY;
-        }, 2000);
+    } else {
+        // Act, Item, Mercy - gör ingenting
+        console.log("Du valde " + ["Fight", "Act", "Item", "Mercy"][selectedButton]);
     }
 }
 
