@@ -60,6 +60,7 @@
 - Status: **Ej definierat än**
 
 ## Kampsystem
+- 2026-11-17 – gjord: "menyn med fight och allt sånt kommer fram när man redan är i fightingläge med flowie" – svart stridsscen med Flowie och meny; Fight byter till det styrbara hjärtat.
 - **Dialogval i möten:** 4 val per person + 1 mat-val om HP lågt
 - Om rätt dialogval → ingen fight, kan gå vidare
 - Om fel dialogval → automatisk fight

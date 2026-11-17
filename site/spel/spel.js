@@ -181,6 +181,14 @@ function update() {
 }
 
 function draw() {
+    if (gameState === "fight" || gameState === "attack") {
+        drawAttackScene();
+        if (gameState === "fight") {
+            drawFightMenu();
+        }
+        return;
+    }
+
     // Rensa canvas med bakgrund
     if (bgImage.complete) {
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
@@ -229,15 +237,6 @@ function draw() {
     ctx.textAlign = "left";
     ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, canvas.height - 20);
 
-    // Fight-meny
-    if (gameState === "fight") {
-        drawFightMenu();
-    }
-
-    // Attack-bar
-    if (gameState === "attack") {
-        drawAttackScene();
-    }
 }
 
 function drawFightMenu() {
@@ -327,31 +326,31 @@ function drawAttackScene() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Arena låda
-    const arenaX = 100;
-    const arenaY = 350;
-    const arenaWidth = 600;
-    const arenaHeight = 200;
-    
-    ctx.strokeStyle = "#ffff00";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(arenaX, arenaY, arenaWidth, arenaHeight);
-    
-    // Flowie (statisk längst upp)
-    drawFlowie(400, 110, 120);
-    
-    // Hjärtat (spelaren styr)
-    if (heartImage.complete && heartImage.naturalWidth > 0) {
-        ctx.save();
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(heartImage, heartX - heartSize, heartY - heartSize, heartSize * 2, heartSize * 2);
-        ctx.restore();
-    } else {
-        ctx.fillStyle = "#ff69b4";
-        ctx.beginPath();
-        ctx.arc(heartX, heartY, heartSize, 0, Math.PI * 2);
-        ctx.fill();
+    // Arenan och hjärtat visas under försvar, inte vid menyval.
+    if (gameState === "attack") {
+        const arenaX = 100;
+        const arenaY = 350;
+        const arenaWidth = 600;
+        const arenaHeight = 200;
+
+        ctx.strokeStyle = "#ffff00";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(arenaX, arenaY, arenaWidth, arenaHeight);
+
+        if (heartImage.complete && heartImage.naturalWidth > 0) {
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(heartImage, heartX - heartSize, heartY - heartSize, heartSize * 2, heartSize * 2);
+            ctx.restore();
+        } else {
+            ctx.fillStyle = "#ff69b4";
+            ctx.beginPath();
+            ctx.arc(heartX, heartY, heartSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
+
+    drawFlowie(400, 110, 120);
     
     // Info
     ctx.fillStyle = "#fff";
