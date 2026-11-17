@@ -1,45 +1,22 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
 
-// Ladda character frames för höger och ner
-const charaFrames = {
-    0: null, // upp (stillframe senare)
-    1: [], // höger (8 frames)
-    2: [], // ner (7 frames)
-    3: null  // vänster (stillframe senare)
-};
-
-// Ladda höger-frames (1-8)
-for (let i = 1; i <= 8; i++) {
-    const img = new Image();
-    img.src = `images/chara_höger_${i}.png`;
-    charaFrames[1].push(img);
-}
-
-// Ladda ner-frames (1-7)
-for (let i = 1; i <= 7; i++) {
-    const img = new Image();
-    img.src = `images/chara_ner_${i}.png`;
-    charaFrames[2].push(img);
-}
-
-// Stillframes för upp och vänster
-const stillFrames = {
+// Ladda character stillframes
+const charaImages = {
     0: new Image(), // upp
+    1: new Image(), // höger
+    2: new Image(), // ner
     3: new Image()  // vänster
 };
-stillFrames[0].src = "images/chara upp.png";
-stillFrames[3].src = "images/chara vänster.png";
+charaImages[0].src = "images/chara upp.png";
+charaImages[1].src = "images/chara höger.png";
+charaImages[2].src = "images/chara ner.png";
+charaImages[3].src = "images/chara vänster.png";
 
 // Spelarens position
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
 const playerSize = 64;
-
-// Animering
-let animationFrame = 0;
-let animationCounter = 0;
-const animationSpeed = 8;
 
 // Riktning (0=upp, 1=höger, 2=ner, 3=vänster)
 let currentDirection = 2;
@@ -75,42 +52,24 @@ window.addEventListener("keyup", (e) => {
 function update() {
     // Rörelse
     const speed = 5;
-    let moved = false;
     let newX = playerX;
     let newY = playerY;
     
     if (keys["ArrowUp"]) {
         newY -= speed;
         currentDirection = 0;
-        moved = true;
     }
     if (keys["ArrowDown"]) {
         newY += speed;
         currentDirection = 2;
-        moved = true;
     }
     if (keys["ArrowLeft"]) {
         newX -= speed;
         currentDirection = 3;
-        moved = true;
     }
     if (keys["ArrowRight"]) {
         newX += speed;
         currentDirection = 1;
-        moved = true;
-    }
-
-    // Uppdatera animering - bara för höger (1) och ner (2)
-    if (moved && (currentDirection === 1 || currentDirection === 2)) {
-        animationCounter++;
-        if (animationCounter >= animationSpeed) {
-            const maxFrames = currentDirection === 1 ? 8 : 7;
-            animationFrame = (animationFrame + 1) % maxFrames;
-            animationCounter = 0;
-        }
-    } else {
-        animationFrame = 0;
-        animationCounter = 0;
     }
 
     // Väggkollisioner
@@ -163,24 +122,12 @@ function draw() {
     }
 
     // Rita Chara
-    if (currentDirection === 1 || currentDirection === 2) {
-        // Höger eller ner - använd animerade frames
-        const frames = charaFrames[currentDirection];
-        if (frames.length > 0 && frames[animationFrame].complete) {
-            ctx.drawImage(
-                frames[animationFrame],
-                playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
-            );
-        }
-    } else {
-        // Upp eller vänster - använd stillframe
-        const stillImg = stillFrames[currentDirection];
-        if (stillImg.complete) {
-            ctx.drawImage(
-                stillImg,
-                playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
-            );
-        }
+    const charaImg = charaImages[currentDirection];
+    if (charaImg.complete) {
+        ctx.drawImage(
+            charaImg,
+            playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
+        );
     }
 
     // Instruktioner
