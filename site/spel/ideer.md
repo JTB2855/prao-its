@@ -27,6 +27,8 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-17 – gjord: "När vi är där kan vi byta ut Farmor bilden mot den här" – bifogad 400px-Toriel_Battle.webp.
+- 2026-11-17 – gjord: "Stanna vid fåtöljen" – Farmor följer inte med när spelaren går upp.
 - 2026-11-17 – gjord: "använd den här bilden som bakgrund när farmor räddar en" – bifogad bild av vardagsrummet.
 - 2026-11-17 – gjord: "Farmor ska stå vid Fotöljen" och spelaren går vidare genom gången uppåt. Mot väggarna upp, ner, höger och vänster stannar spelaren.
 - Får körsbärspaj (mat)
