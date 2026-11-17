@@ -26,7 +26,7 @@ const playerSize = 64;
 let currentDirection = 2;
 
 // Nuvarande rum
-let currentRoom = 0;
+let currentRoom = 1;
 
 // Rum-data 
 const rooms = [
