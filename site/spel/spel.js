@@ -35,6 +35,7 @@ let gameState = "exploration"; // "exploration", "fight" eller "attack"
 let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
 let flowerAttacked = false;
 let attackBarProgress = 0; // 0-100
+let zPressed = false; // Förhindra dubbelklick
 
 // Rum-data 
 const rooms = [
@@ -61,14 +62,16 @@ window.addEventListener("keydown", (e) => {
     if (gameState === "fight") {
         if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
         if (e.key === "ArrowRight" && selectedButton < 3) selectedButton++;
-        if (e.key.toLowerCase() === "z") {
+        if (e.key.toLowerCase() === "z" && !zPressed) {
+            zPressed = true;
             handleFightChoice();
         }
     }
     
     // Attack-bar
     if (gameState === "attack") {
-        if (e.key.toLowerCase() === "z") {
+        if (e.key.toLowerCase() === "z" && !zPressed) {
+            zPressed = true;
             handleAttackBar();
         }
     }
@@ -76,6 +79,9 @@ window.addEventListener("keydown", (e) => {
 
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
+    if (e.key.toLowerCase() === "z") {
+        zPressed = false;
+    }
 });
 
 function handleFightChoice() {
