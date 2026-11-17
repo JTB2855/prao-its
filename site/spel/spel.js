@@ -93,7 +93,7 @@ function update() {
     // Kolla om vi är nära Flowie i rummet
     if (currentRoom === 1 && gameState === "exploration") {
         const distance = Math.hypot(playerX - 600, playerY - 300);
-        if (distance < 80) {
+        if (distance < 150) {
             gameState = "fight";
             selectedButton = 0;
         }
