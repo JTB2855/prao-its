@@ -1,6 +1,10 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
 
+// Ladda bakgrund
+const bgImage = new Image();
+bgImage.src = "images/bg_1.png";
+
 // Ladda character stillframes
 const charaImages = {
     0: new Image(), // upp
@@ -96,9 +100,13 @@ function update() {
 }
 
 function draw() {
-    // Rensa canvas
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Rensa canvas med bakgrund
+    if (bgImage.complete) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     // Rumsnamn och info
     ctx.fillStyle = "#fff";
