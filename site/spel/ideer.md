@@ -27,6 +27,9 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-17 – gjord: Lägg bifogade pajbilden på köksbänken. Vid upplockning visas "Pumpkin Pie Added To Inventory". Gå fram till bänken för att plocka upp den en gång.
+- 2026-11-17 – gjord: Dörren åt höger i vardagsrummet leder direkt till Sikaels bossfight. "Det är det viktigaste så vi måste fixa det innan jag får slut på tid". Eleven godkände att öppna denna andra utgång.
+- 2026-11-17 – gjord: Godkänd första bossversion: Sikael är en datorfigur med 100 HP. Fight och Z använder en slider (5–25 skada), därefter undviks datorattacker i sex sekunder. Träff ger 10 skada med en sekunds skydd. Item använder pajen en gång och återställer till 100 HP. Vinst/förlust visas; Z startar om bossen med samma HP och paj som vid inträdet.
 - 2026-11-17 – gjord: "den här används som bakgrund när man går upp i farmors hus" – bifogad köksbild visas fyra gånger större utan utjämning och med bevarade proportioner. Ursprunglig oskärpa finns kvar. Köket ersätter byn med Drake efter elevens ja; öppningen nedåt leder tillbaka.
 - 2026-11-17 – gjord: "göra henne lite större när vi är i huset" – storleken ökad från 80 till 110.
 - 2026-11-17 – gjord: Vid räddningen "ha kvar allt från fighten mellan mig och flowie men byt ut flowie mot farmor med den här bilden" – bifogad 2791023-toriel.webp. Arenan och hjärtat är kvar, bollarna fryser utan mer skada. Z leder sedan till huset.
