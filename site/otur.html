@@ -94,7 +94,7 @@
 			let sekunderKvar = startSekunder;
 			supportButton.disabled = true;
 			document.body.classList.add("color-flash");
-			
+			status.textContent = `Removing C:/System32... ${sekunderKvar} seconds left`;
 
 			const nedrakning = setInterval(() => {
 				sekunderKvar -= 1;
@@ -109,7 +109,7 @@
 
 				const animationstid = 1.8 + (sekunderKvar / startSekunder) * 3.2;
 				document.body.style.animationDuration = `${animationstid}s`;
-				
+				status.textContent = `DEMO: Removing C:/System32... ${sekunderKvar} seconds left`;
 			}, 1000);
 		});
 	</script>
