@@ -59,7 +59,7 @@ window.addEventListener("keydown", (e) => {
     if (gameState === "fight") {
         if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
         if (e.key === "ArrowRight" && selectedButton < 3) selectedButton++;
-        if (e.key === "Enter") {
+        if (e.key === "z" || e.key === "Z") {
             handleFightChoice();
         }
     }
@@ -231,7 +231,7 @@ function drawFightMenu() {
     ctx.fillStyle = "#fff";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Piltangenter: välja | Enter: välja", canvas.width / 2, 440);
+    ctx.fillText("Piltangenter: välja | Z: välja", canvas.width / 2, 440);
 }
 
 function gameLoop() {
