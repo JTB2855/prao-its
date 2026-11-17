@@ -137,12 +137,6 @@ function draw() {
             playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
         );
     }
-
-    // Instruktioner
-    ctx.fillStyle = "#888";
-    ctx.font = "14px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText("Piltangenter: röra", 20, canvas.height - 20);
 }
 
 function gameLoop() {
