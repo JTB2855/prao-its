@@ -5,13 +5,13 @@
   --border-radius: 5px;
   --box-shadow: 2px 2px 10px;
   /* Umeå universitet, grafisk profil 2016 */
-  --umu-blue: #2a4765;
-  --umu-web-blue: #006699;
-  --umu-pink: #eabab9;
-  --umu-cream: #f1efe4;
-  --umu-green: #73a790;
-  --umu-orange: #d7b17c;
-  --color-accent: #eabab933;
+  --umu-blue: #007bff;
+  --umu-web-blue: #00aaff;
+  --umu-pink: #ff0400;
+  --umu-cream: #ffd900;
+  --umu-green: #00ff8c;
+  --umu-orange: #ff9500;
+  --color-accent: #ff040033;
   --color-bg: #fff;
   --color-bg-secondary: #ddd8c4;
   --color-link: #006699;
