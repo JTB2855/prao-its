@@ -40,11 +40,11 @@
 			cursor: default;
 			opacity: 0.7;
 		}
-        
-        		body.color-flash {
+
+		body.color-flash {
 			color: white;
-			animation: background       -colors 2.5s steps(1, end) infinite;
-		}   
+			animation: background-colors 5s steps(1, end) infinite;
+		}
 
 		body.color-flash h1,
 		body.color-flash .demo-notice,
@@ -92,10 +92,11 @@
 		const status = document.getElementById("status");
 
 		supportButton.addEventListener("click", () => {
-			let sekunderKvar = 30;
+			const startSekunder = 10;
+			let sekunderKvar = startSekunder;
 			supportButton.disabled = true;
 			document.body.classList.add("color-flash");
-			status.textContent = `DEMO: Simulerar "removing C:/..." ${sekunderKvar} sekunder kvar`;
+			
 
 			const nedrakning = setInterval(() => {
 				sekunderKvar -= 1;
@@ -103,11 +104,14 @@
 				if (sekunderKvar === 0) {
 					clearInterval(nedrakning);
 					document.body.classList.remove("color-flash");
-					status.textContent = "Klart! Det här var bara en simulering. Inga filer togs bort.";
+					document.body.style.animationDuration = "";
+					status.textContent = "Phew inget hände. Nw";
 					return;
 				}
 
-				status.textContent = `DEMO: Simulerar "removing C:/..." ${sekunderKvar} sekunder kvar`;
+				const animationstid = 1.8 + (sekunderKvar / startSekunder) * 3.2;
+				document.body.style.animationDuration = `${animationstid}s`;
+				
 			}, 1000);
 		});
 	</script>
