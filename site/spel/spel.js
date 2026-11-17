@@ -55,19 +55,20 @@ const keys = {};
 
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;
+    console.log("Tangent:", e.key, "GameState:", gameState);
     
     // Fight-meny navigation
     if (gameState === "fight") {
         if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
         if (e.key === "ArrowRight" && selectedButton < 3) selectedButton++;
-        if (e.key === "z" || e.key === "Z") {
+        if (e.key.toLowerCase() === "z") {
             handleFightChoice();
         }
     }
     
     // Attack-bar
     if (gameState === "attack") {
-        if (e.key === "z" || e.key === "Z") {
+        if (e.key.toLowerCase() === "z") {
             handleAttackBar();
         }
     }
