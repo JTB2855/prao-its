@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="sv">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Customer support</title>
+	<link rel="stylesheet" href="mvp.css">
+	<style>
+		body {
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			text-align: center;
+		}
+
+		main {
+			width: min(100% - 2rem, 36rem);
+		}
+
+		button {
+			width: 10rem;
+			aspect-ratio: 1;
+			padding: 1rem;
+			border: 6px solid #8a0f14;
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 25%, #ff6868, #db1018 55%, #8c050a);
+			color: white;
+			font: inherit;
+			font-weight: bold;
+			cursor: pointer;
+			box-shadow: 0 8px #65090c, 0 11px 18px #0003, inset 0 3px 4px #ffffff80;
+		}
+
+		button:active {
+			transform: translateY(5px);
+			box-shadow: 0 3px #65090c, inset 0 3px 4px #ffffff80;
+		}
+
+		button:disabled {
+			cursor: default;
+			opacity: 0.7;
+		}
+        
+        		body.color-flash {
+			color: white;
+			animation: background       -colors 2.5s steps(1, end) infinite;
+		}   
+
+		body.color-flash h1,
+		body.color-flash .demo-notice,
+		body.color-flash #status {
+			text-shadow: 1px 1px 2px #000;
+		}
+
+		@keyframes background-colors {
+			0% { background-color: #922b21; }
+			20% { background-color: #1f4e79; }
+			40% { background-color: #1e6b45; }
+			60% { background-color: #9a4f00; }
+			80% { background-color: #3d405b; }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			body.color-flash {
+				animation: none;
+				background-color: #1f4e79;
+			}
+		}
+
+		#status {
+			margin-top: 2rem;
+			min-height: 5rem;
+			font-family: monospace;
+			font-size: 1.2rem;
+		}
+
+		.demo-notice {
+			margin-top: 1.5rem;
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+	<main>
+		<h1>Klicka för att nå customer support</h1>
+		<button id="support-button" type="button">Customer support</button>
+		<p class="demo-notice">DEMO: Inga filer tas bort från datorn.</p>
+		<p id="status" aria-live="polite"></p>
+	</main>
+	<script>
+		const supportButton = document.getElementById("support-button");
+		const status = document.getElementById("status");
+
+		supportButton.addEventListener("click", () => {
+			let sekunderKvar = 30;
+			supportButton.disabled = true;
+			document.body.classList.add("color-flash");
+			status.textContent = `DEMO: Simulerar "removing C:/..." ${sekunderKvar} sekunder kvar`;
+
+			const nedrakning = setInterval(() => {
+				sekunderKvar -= 1;
+
+				if (sekunderKvar === 0) {
+					clearInterval(nedrakning);
+					document.body.classList.remove("color-flash");
+					status.textContent = "Klart! Det här var bara en simulering. Inga filer togs bort.";
+					return;
+				}
+
+				status.textContent = `DEMO: Simulerar "removing C:/..." ${sekunderKvar} sekunder kvar`;
+			}, 1000);
+		});
+	</script>
+</body>
+</html>
