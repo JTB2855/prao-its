@@ -87,10 +87,13 @@ function handleFightChoice() {
 }
 
 function update() {
-    // Om vi är i fight, starta Flowie-mötet automatiskt
+    // Kolla om vi är nära Flowie i rummet
     if (currentRoom === 1 && gameState === "exploration") {
-        gameState = "fight";
-        selectedButton = 0;
+        const distance = Math.hypot(playerX - 600, playerY - 300);
+        if (distance < 80) {
+            gameState = "fight";
+            selectedButton = 0;
+        }
     }
 
     if (gameState === "exploration") {
@@ -198,14 +201,15 @@ function drawFightMenu() {
     
     // Knapp-texter
     const buttons = ["Fight", "Act", "Item", "Mercy"];
-    const buttonWidth = 150;
+    const buttonWidth = 140;
     const buttonHeight = 50;
-    const startX = 50;
+    const startX = 80;
     const startY = 380;
+    const spacing = 170;
     
     for (let i = 0; i < 4; i++) {
-        const x = startX + (i % 2) * 200;
-        const y = startY + (i > 1 ? 80 : 0);
+        const x = startX + i * spacing;
+        const y = startY;
         
         // Knapp-bakgrund
         if (i === selectedButton) {
