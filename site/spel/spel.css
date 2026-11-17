@@ -1,6 +1,35 @@
-#spelplan {
-  display: block;
-  max-width: 100%;
-  background: #222;
-  border-radius: 8px;
+body {
+    margin: 0;
+    padding: 0;
+    background: #1a1a1a;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
+
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#spelplan {
+    display: block;
+    border: 3px solid #fff;
+    background: #000;
+    image-rendering: pixelated;
+}
+
+#ui {
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+}
+
+#room-info {
+    margin-bottom: 10px;
+}
+
