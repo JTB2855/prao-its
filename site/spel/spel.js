@@ -144,9 +144,9 @@ function draw() {
     // Rita spelaren med sprite sheet
     if (spriteSheet.complete) {
         // Sprite sheet layout: 8 frames bred, 4 rader höga (ner, höger, upp, vänster)
-        // Rad 5 ignoreras
+        // Rad 5 ignoreras helt
         const frameWidth = spriteSheet.width / 8;
-        const frameHeight = spriteSheet.height / 5; // Totalt 5 rader, men vi använder bara 4
+        const frameHeight = spriteSheet.height / 4; // Bara 4 rader
         
         // Mappa våra riktningar till rätt rad
         const directionMap = [2, 1, 0, 3]; // upp->rad3, höger->rad2, ner->rad1, vänster->rad4
