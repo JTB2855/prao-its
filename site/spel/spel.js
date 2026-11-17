@@ -17,6 +17,13 @@ charaImages[1].src = "images/chara_höger_1.png";
 charaImages[2].src = "images/chara ner.png";
 charaImages[3].src = "images/chara vänster.png";
 
+// Fight-spel bilder
+const heartImage = new Image();
+heartImage.src = "images/heart.png";
+
+const floweyImage = new Image();
+floweyImage.src = "images/flowey.png";
+
 // Spelarens stats
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
@@ -317,18 +324,22 @@ function drawAttackScene() {
     ctx.strokeRect(arenaX, arenaY, arenaWidth, arenaHeight);
     
     // Flowie (statisk längst upp)
-    ctx.fillStyle = "#ff0000";
-    ctx.fillRect(400 - 20, 50, 40, 40);
-    ctx.fillStyle = "#ffff00";
-    ctx.font = "14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Flowie", 400, 100);
+    if (floweyImage.complete) {
+        ctx.drawImage(floweyImage, 380, 30, 40, 40);
+    } else {
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(380, 30, 40, 40);
+    }
     
     // Hjärtat (spelaren styr)
-    ctx.fillStyle = "#ff69b4"; // Rosa
-    ctx.beginPath();
-    ctx.arc(heartX, heartY, heartSize, 0, Math.PI * 2);
-    ctx.fill();
+    if (heartImage.complete) {
+        ctx.drawImage(heartImage, heartX - heartSize, heartY - heartSize, heartSize * 2, heartSize * 2);
+    } else {
+        ctx.fillStyle = "#ff69b4";
+        ctx.beginPath();
+        ctx.arc(heartX, heartY, heartSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
     
     // Info
     ctx.fillStyle = "#fff";
