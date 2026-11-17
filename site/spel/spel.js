@@ -36,6 +36,9 @@ let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
 let flowerAttacked = false;
 let attackBarProgress = 0; // 0-100
 let zPressed = false; // Förhindra dubbelklick
+let heartX = 400;
+let heartY = 500;
+const heartSize = 20;
 
 // Rum-data 
 const rooms = [
@@ -152,6 +155,15 @@ function update() {
             playerY = newY;
         }
     }
+
+    if (gameState === "attack") {
+        // Hjärtat styr
+        const heartSpeed = 7;
+        if (keys["ArrowUp"] && heartY > 350) heartY -= heartSpeed;
+        if (keys["ArrowDown"] && heartY < 550) heartY += heartSpeed;
+        if (keys["ArrowLeft"] && heartX > 100) heartX -= heartSpeed;
+        if (keys["ArrowRight"] && heartX < 700) heartX += heartSpeed;
+    }
 }
 
 function draw() {
@@ -206,7 +218,7 @@ function draw() {
 
     // Attack-bar
     if (gameState === "attack") {
-        drawAttackBar();
+        drawAttackScene();
     }
 }
 
@@ -284,15 +296,40 @@ function drawAttackBar() {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 }
 
-function handleAttackBar() {
-    // Kollar om man klickade när staven var grön (ungefär 20-80 procent av barWidth)
-    if (attackBarProgress > 20 && attackBarProgress < 80) {
-        console.log("Perfekt attack!");
-        gameState = "fight";
-    } else {
-        console.log("Du missade!");
-        gameState = "fight";
-    }
+function drawAttackScene() {
+    // Battle arena bakgrund
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Arena låda
+    const arenaX = 100;
+    const arenaY = 350;
+    const arenaWidth = 600;
+    const arenaHeight = 200;
+    
+    ctx.strokeStyle = "#ffff00";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(arenaX, arenaY, arenaWidth, arenaHeight);
+    
+    // Flowie (statisk längst upp)
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(400 - 20, 50, 40, 40);
+    ctx.fillStyle = "#ffff00";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Flowie", 400, 100);
+    
+    // Hjärtat (spelaren styr)
+    ctx.fillStyle = "#ff69b4"; // Rosa
+    ctx.beginPath();
+    ctx.arc(heartX, heartY, heartSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Info
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 30);
 }
 
 function gameLoop() {
