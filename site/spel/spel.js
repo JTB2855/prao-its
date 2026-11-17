@@ -8,7 +8,7 @@ spriteSheet.src = "images/chara.png";
 // Spelarens position
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
-const playerSize = 32;
+const playerSize = 48;
 
 // Animering
 let animationFrame = 0;
