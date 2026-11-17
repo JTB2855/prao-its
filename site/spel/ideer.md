@@ -6,7 +6,7 @@
 
 | Din figur | Undertale | Roll |
 |-----------|-----------|------|
-| **Sikael (du)** | Frisk | Du är huvudpersonen |
+| **Chara (du)** | Frisk | Du är huvudpersonen |
 | **Sikael (boss)** | Asgore | Bossenessen i slutet, Sans-attacker fast med "dator" istället för ben |
 | **Flowie** | Flowey | Blomma i skogsdungen, verkar snäll men är elak |
 | **Farmor** | Toriel | Räddar dig, ger körsbärspaj |
