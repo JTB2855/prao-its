@@ -5,6 +5,10 @@ const ctx = canvas.getContext("2d");
 const bgImage = new Image();
 bgImage.src = "images/bg_1.png";
 
+const farmorBackground = new Image();
+farmorBackground.onerror = () => console.error("Kunde inte ladda bakgrunden i Farmors hus.");
+farmorBackground.src = "images/farmors-rum.png";
+
 // Ladda character stillframes
 const charaImages = {
     0: new Image(), // upp
@@ -77,7 +81,7 @@ const heartSize = 20;
 const rooms = [
     { name: "Intro - Fallning", description: "Du trillar ner i brunnen...", spawnX: 400, spawnY: 300 },
     { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300, spawnX: 300, spawnY: 100 },
-    { name: "Farmors hus", description: "Du är här. 3 vägar vidare", npc: "Farmor", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
+    { name: "Farmors hus", description: "Gången uppåt leder vidare", npc: "Farmor", npcX: 410, npcY: 230, spawnX: 560, spawnY: 330 },
     { name: "By söderut", description: "Orange drake här", npc: "Drake", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Grotta höger", description: "Skelett längre in", npc: "Papyrus", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Snöbiom vänster", description: "Hundar här", npc: "Hundar", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
@@ -169,7 +173,23 @@ function rescuePlayer() {
     playerHP = Math.max(1, playerHP - 99);
     flowerAttacked = true;
     stormBalls = [];
+    currentRoom = 2;
+    playerX = rooms[2].spawnX;
+    playerY = rooms[2].spawnY;
     gameState = "rescue";
+}
+
+function canWalkInFarmorRoom(x, y) {
+    const halfSize = playerSize / 2;
+    // Golvet och gången bildar tillsammans rummets gångbara yta.
+    for (const cornerX of [x - halfSize, x + halfSize]) {
+        for (const cornerY of [y - halfSize, y + halfSize]) {
+            const onFloor = cornerX >= 46 && cornerX <= 750 && cornerY >= 150 && cornerY <= 545;
+            const inHallway = cornerX >= 115 && cornerX <= 214 && cornerY >= -100 && cornerY <= 182;
+            if (!onFloor && !inHallway) return false;
+        }
+    }
+    return true;
 }
 
 function update(seconds = 1 / 60) {
@@ -210,7 +230,18 @@ function update(seconds = 1 / 60) {
             currentDirection = 1;
         }
 
-        // Väggkollisioner
+        if (currentRoom === 2) {
+            if (canWalkInFarmorRoom(newX, playerY)) playerX = newX;
+            if (canWalkInFarmorRoom(playerX, newY)) playerY = newY;
+            if (playerY + playerSize / 2 < 0) {
+                currentRoom = 3;
+                playerX = rooms[currentRoom].spawnX;
+                playerY = rooms[currentRoom].spawnY;
+            }
+            return;
+        }
+
+        // Väggkollisioner i övriga rum
         if (newY < 0 && currentRoom > 0) {
             currentRoom--;
             playerX = rooms[currentRoom].spawnX;
@@ -280,6 +311,11 @@ function draw() {
         } else if (gameState === "dialogue" || gameState === "rescue") {
             drawDialogue();
         }
+        return;
+    }
+
+    if (currentRoom === 2) {
+        drawFarmorRoom();
         return;
     }
 
@@ -423,11 +459,12 @@ function drawCharacter(x, y, size, image) {
 
 function drawDialogue() {
     ctx.save();
+    const boxY = gameState === "rescue" ? 450 : 210;
     ctx.fillStyle = "#000";
-    ctx.fillRect(40, 210, 720, 110);
+    ctx.fillRect(40, boxY, 720, 110);
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
-    ctx.strokeRect(40, 210, 720, 110);
+    ctx.strokeRect(40, boxY, 720, 110);
     ctx.fillStyle = "#fff";
     ctx.font = "22px Arial";
     ctx.textAlign = "left";
@@ -435,13 +472,37 @@ function drawDialogue() {
     const text = gameState === "rescue"
         ? "Farmor: Stopp! Jag hjälper dig. Kom med mig."
         : flowieLines[dialogueIndex];
-    ctx.fillText(text, 60, 250);
+    ctx.fillText(text, 60, boxY + 40);
     ctx.font = "16px Arial";
-    ctx.fillText("Z: fortsätt", 60, 295);
+    ctx.fillText("Z: fortsätt", 60, boxY + 85);
+    ctx.restore();
+}
+
+function drawFarmorRoom() {
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+    if (farmorBackground.complete && farmorBackground.naturalWidth > 0) {
+        ctx.drawImage(farmorBackground, 0, 0, canvas.width, canvas.height);
+    }
+    drawCharacter(rooms[2].npcX, rooms[2].npcY, 80, farmorImage);
+    drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(12, 10, 160, 30);
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 32);
     ctx.restore();
 }
 
 function drawAttackScene() {
+    if (gameState === "rescue") {
+        drawFarmorRoom();
+        return;
+    }
     // Battle arena bakgrund
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -470,16 +531,8 @@ function drawAttackScene() {
         }
     }
 
-    if (gameState === "rescue") {
-        drawCharacter(400, 110, 150, farmorImage);
-        ctx.fillStyle = "#fff";
-        ctx.font = "20px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("Farmor", 400, 200);
-    } else {
-        const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
-        drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
-    }
+    const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
+    drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
 
     if (gameState === "attack" && stormBalls.length > 0) {
         ctx.fillStyle = "#fff";

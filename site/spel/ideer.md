@@ -27,8 +27,10 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-17 – gjord: "använd den här bilden som bakgrund när farmor räddar en" – bifogad bild av vardagsrummet.
+- 2026-11-17 – gjord: "Farmor ska stå vid Fotöljen" och spelaren går vidare genom gången uppåt. Mot väggarna upp, ner, höger och vänster stannar spelaren.
 - Får körsbärspaj (mat)
-- Från här finns 3 vägar vidare
+- 2026-11-17 – ersatt: Från här finns 3 vägar vidare. Eleven valde i stället bara gången uppåt som utgång.
 - Status: **Ej gjord**
 
 ### 4. By – Söderut från farmor (vägen ner)
