@@ -60,7 +60,9 @@
 - Status: **Ej definierat än**
 
 ## Kampsystem
-- 2026-11-17 – gjord: "menyn med fight och allt sånt kommer fram när man redan är i fightingläge med flowie" – svart stridsscen med Flowie och meny; Fight byter till det styrbara hjärtat.
+- 2026-11-17 – gjord: Flowie säger "Howdy! I'm FLOWIE. FLOWIE the FLOWER!" → Z → "This is love" och visar en liten flygande boll → "take it". Bollen flyger mot hjärtat som spelaren kan flytta. Vid träff tar spelaren 99 skada och Farmor kommer och hjälper.
+- 2026-11-17 – gjord: "vi måste göra en konversation som flowie säger innan fight".
+- 2026-11-17 – ersatt: "menyn med fight och allt sånt kommer fram när man redan är i fightingläge med flowie" – Flowie-mötet börjar nu med samtalet i stället; menyvalen väntar.
 - **Dialogval i möten:** 4 val per person + 1 mat-val om HP lågt
 - Om rätt dialogval → ingen fight, kan gå vidare
 - Om fel dialogval → automatisk fight

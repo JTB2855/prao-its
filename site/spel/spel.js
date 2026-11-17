@@ -43,6 +43,13 @@ let currentRoom = 1;
 let gameState = "exploration"; // "exploration", "fight" eller "attack"
 let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
 let flowerAttacked = false;
+const flowieLines = [
+    "Howdy! I'm FLOWIE. FLOWIE the FLOWER!",
+    "This is love",
+    "take it"
+];
+let dialogueIndex = 0;
+const ball = { x: 400, y: 370, radius: 7, speed: 180, vx: 0, vy: 0 };
 let attackBarProgress = 0; // 0-100
 let zPressed = false; // Förhindra dubbelklick
 let heartX = 400;
@@ -68,7 +75,9 @@ const keys = {};
 
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;
-    console.log("Tangent:", e.key, "GameState:", gameState);
+    if (e.key.startsWith("Arrow") || e.key.toLowerCase() === "z") {
+        e.preventDefault();
+    }
     
     // Fight-meny navigation
     if (gameState === "fight") {
@@ -80,11 +89,19 @@ window.addEventListener("keydown", (e) => {
         }
     }
     
-    // Attack-bar
-    if (gameState === "attack") {
-        if (e.key.toLowerCase() === "z" && !zPressed) {
-            zPressed = true;
-            handleAttackBar();
+    if (e.key.toLowerCase() === "z" && !zPressed && !e.repeat) {
+        zPressed = true;
+        if (gameState === "dialogue") {
+            if (dialogueIndex < flowieLines.length - 1) {
+                dialogueIndex++;
+            } else {
+                startBallAttack();
+            }
+        } else if (gameState === "rescue") {
+            currentRoom = 2;
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+            gameState = "exploration";
         }
     }
 });
@@ -109,12 +126,24 @@ function handleFightChoice() {
     }
 }
 
-function update() {
+function startBallAttack() {
+    ball.x = 400;
+    ball.y = 370;
+    const distance = Math.hypot(heartX - ball.x, heartY - ball.y);
+    ball.vx = distance === 0 ? 0 : (heartX - ball.x) / distance * ball.speed;
+    ball.vy = distance === 0 ? ball.speed : (heartY - ball.y) / distance * ball.speed;
+    gameState = "attack";
+}
+
+function update(seconds = 1 / 60) {
     // Kolla om vi är nära Flowie i rummet
-    if (currentRoom === 1 && gameState === "exploration") {
-        const distance = Math.hypot(playerX - 600, playerY - 300);
+    if (currentRoom === 1 && gameState === "exploration" && !flowerAttacked) {
+        const distance = Math.hypot(playerX - rooms[1].npcX, playerY - rooms[1].npcY);
         if (distance < 150) {
-            gameState = "fight";
+            gameState = "dialogue";
+            dialogueIndex = 0;
+            heartX = 400;
+            heartY = 500;
             selectedButton = 0;
         }
     }
@@ -173,18 +202,35 @@ function update() {
         const arenaWidth = 600;
         const arenaHeight = 200;
         
-        if (keys["ArrowUp"] && heartY - heartSize > arenaY) heartY -= heartSpeed;
-        if (keys["ArrowDown"] && heartY + heartSize < arenaY + arenaHeight) heartY += heartSpeed;
-        if (keys["ArrowLeft"] && heartX - heartSize > arenaX) heartX -= heartSpeed;
-        if (keys["ArrowRight"] && heartX + heartSize < arenaX + arenaWidth) heartX += heartSpeed;
+        if (keys["ArrowUp"]) heartY -= heartSpeed;
+        if (keys["ArrowDown"]) heartY += heartSpeed;
+        if (keys["ArrowLeft"]) heartX -= heartSpeed;
+        if (keys["ArrowRight"]) heartX += heartSpeed;
+        heartX = Math.max(arenaX + heartSize + 2, Math.min(arenaX + arenaWidth - heartSize - 2, heartX));
+        heartY = Math.max(arenaY + heartSize + 2, Math.min(arenaY + arenaHeight - heartSize - 2, heartY));
+
+        ball.x += ball.vx * seconds;
+        ball.y += ball.vy * seconds;
+        if (Math.hypot(heartX - ball.x, heartY - ball.y) <= heartSize + ball.radius) {
+            playerHP = Math.max(1, playerHP - 99);
+            flowerAttacked = true;
+            gameState = "rescue";
+        } else if (ball.x < arenaX || ball.x > arenaX + arenaWidth ||
+                   ball.y < arenaY || ball.y > arenaY + arenaHeight) {
+            // Ett undviket skott ger en ny chans, inte automatisk skada.
+            gameState = "dialogue";
+            dialogueIndex = 2;
+        }
     }
 }
 
 function draw() {
-    if (gameState === "fight" || gameState === "attack") {
+    if (gameState !== "exploration") {
         drawAttackScene();
         if (gameState === "fight") {
             drawFightMenu();
+        } else if (gameState === "dialogue" || gameState === "rescue") {
+            drawDialogue();
         }
         return;
     }
@@ -321,13 +367,33 @@ function drawFlowie(x, y, size) {
     ctx.restore();
 }
 
+function drawDialogue() {
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(40, 210, 720, 110);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 210, 720, 110);
+    ctx.fillStyle = "#fff";
+    ctx.font = "22px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    const text = gameState === "rescue"
+        ? "Farmor: Stopp! Jag hjälper dig. Kom med mig."
+        : flowieLines[dialogueIndex];
+    ctx.fillText(text, 60, 250);
+    ctx.font = "16px Arial";
+    ctx.fillText("Z: fortsätt", 60, 295);
+    ctx.restore();
+}
+
 function drawAttackScene() {
     // Battle arena bakgrund
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Arenan och hjärtat visas under försvar, inte vid menyval.
-    if (gameState === "attack") {
+    if (gameState === "attack" || gameState === "dialogue") {
         const arenaX = 100;
         const arenaY = 350;
         const arenaWidth = 600;
@@ -350,7 +416,24 @@ function drawAttackScene() {
         }
     }
 
-    drawFlowie(400, 110, 120);
+    if (gameState === "rescue") {
+        ctx.fillStyle = "#b98cdb";
+        ctx.fillRect(380, 70, 40, 70);
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Farmor", 400, 175);
+    } else {
+        drawFlowie(400, 110, 120);
+    }
+
+    if (gameState === "attack" || (gameState === "dialogue" && dialogueIndex >= 1)) {
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(gameState === "attack" ? ball.x : 400,
+            gameState === "attack" ? ball.y : 370, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
     
     // Info
     ctx.fillStyle = "#fff";
@@ -359,8 +442,11 @@ function drawAttackScene() {
     ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 30);
 }
 
-function gameLoop() {
-    update();
+let previousTime;
+function gameLoop(time) {
+    const seconds = previousTime === undefined ? 0 : Math.min((time - previousTime) / 1000, 0.05);
+    previousTime = time;
+    update(seconds);
     draw();
     requestAnimationFrame(gameLoop);
 }
