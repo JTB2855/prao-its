@@ -19,7 +19,8 @@ charaImages[3].src = "images/chara vänster.png";
 
 // Fight-spel bilder
 const heartImage = new Image();
-heartImage.src = "images/heart.png";
+heartImage.onerror = () => console.error("Kunde inte ladda bilden av hjärtat.");
+heartImage.src = "images/hjarta.png";
 
 const floweyImage = new Image();
 floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
@@ -340,8 +341,11 @@ function drawAttackScene() {
     drawFlowie(400, 110, 120);
     
     // Hjärtat (spelaren styr)
-    if (heartImage.complete) {
+    if (heartImage.complete && heartImage.naturalWidth > 0) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(heartImage, heartX - heartSize, heartY - heartSize, heartSize * 2, heartSize * 2);
+        ctx.restore();
     } else {
         ctx.fillStyle = "#ff69b4";
         ctx.beginPath();
