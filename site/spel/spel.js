@@ -1,41 +1,9 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
 
-// Ladda character frames (8 per riktning)
-const charaFrames = {
-    0: [], // upp
-    1: [], // höger
-    2: [], // ner
-    3: []  // vänster
-};
-
-// Ladda upp-frames
-for (let i = 1; i <= 8; i++) {
-    const img = new Image();
-    img.src = `images/chara_upp_${i}.png`;
-    charaFrames[0].push(img);
-}
-
-// Ladda höger-frames
-for (let i = 1; i <= 8; i++) {
-    const img = new Image();
-    img.src = `images/chara_höger_${i}.png`;
-    charaFrames[1].push(img);
-}
-
-// Ladda ner-frames
-for (let i = 1; i <= 8; i++) {
-    const img = new Image();
-    img.src = `images/chara_ner_${i}.png`;
-    charaFrames[2].push(img);
-}
-
-// Ladda vänster-frames
-for (let i = 1; i <= 8; i++) {
-    const img = new Image();
-    img.src = `images/chara_vänster_${i}.png`;
-    charaFrames[3].push(img);
-}
+// Ladda sprite sheet
+const spriteSheet = new Image();
+spriteSheet.src = "images/huvudperson.png";
 
 // Spelarens position
 let playerX = canvas.width / 2;
@@ -167,11 +135,21 @@ function draw() {
         ctx.fillText(rooms[currentRoom].npc, npcX, npcY + 25);
     }
 
-    // Rita Chara
-    const frames = charaFrames[currentDirection];
-    if (frames.length > 0 && frames[animationFrame].complete) {
+    // Rita Chara från sprite sheet
+    if (spriteSheet.complete) {
+        // Sprite sheet: 8 frames bred, 5 rader höga (ner, höger, upp, vänster, extra)
+        const frameWidth = spriteSheet.width / 8;
+        const frameHeight = spriteSheet.height / 5;
+        
+        // Mappa riktning till rad
+        const directionMap = [2, 1, 0, 3]; // upp->rad2, höger->rad1, ner->rad0, vänster->rad3
+        
+        const sourceX = animationFrame * frameWidth;
+        const sourceY = directionMap[currentDirection] * frameHeight;
+        
         ctx.drawImage(
-            frames[animationFrame],
+            spriteSheet,
+            sourceX, sourceY, frameWidth, frameHeight,
             playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
         );
     }
