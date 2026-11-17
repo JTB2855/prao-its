@@ -1,11 +1,22 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
-const roomInfoDiv = document.getElementById("room-info");
+
+// Ladda sprite sheet
+const spriteSheet = new Image();
+spriteSheet.src = "images/sikael.png";
 
 // Spelarens position
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
-const playerSize = 30;
+const playerSize = 32;
+
+// Animering
+let animationFrame = 0;
+let animationCounter = 0;
+const animationSpeed = 10; // Fler = långsammare
+
+// Riktning (0=upp, 1=höger, 2=ner, 3=vänster)
+let currentDirection = 2; // Standard: ner
 
 // Nuvarande rum
 let currentRoom = 0;
@@ -13,22 +24,24 @@ let currentRoom = 0;
 // Rum-data 
 const rooms = [
     { name: "Intro - Fallning", description: "Du trillar ner i brunnen..." },
-    { name: "Skogsdunge", description: "Blomman möter dig här", npc: "Blomman" },
-    { name: "Farmors hus", description: "Du är här. 3 vägar vidare", npc: "Farmor" },
-    { name: "By söderut", description: "Orange drake (blir din följare)", npc: "Drake" },
-    { name: "Grotta höger", description: "Skelett med corny jokes", npc: "Skelett" },
-    { name: "Snöbiom vänster", description: "Hundar försöker nå dig", npc: "Hundar" },
-    { name: "Rum 7", description: "Att fylla i senare", npc: "?" },
-    { name: "Rum 8", description: "Att fylla i senare", npc: "?" },
-    { name: "Rum 9", description: "Att fylla i senare", npc: "?" },
-    { name: "Boss - Sikael", description: "Sista mötet!", npc: "Sikael" }
+    { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300 },
+    { name: "Farmors hus", description: "Du är här. 3 vägar vidare", npc: "Farmor", npcX: 600, npcY: 300 },
+    { name: "By söderut", description: "Orange drake här", npc: "Drake", npcX: 600, npcY: 300 },
+    { name: "Grotta höger", description: "Skelett längre in", npc: "Papyrus", npcX: 600, npcY: 300 },
+    { name: "Snöbiom vänster", description: "Hundar här", npc: "Hundar", npcX: 600, npcY: 300 },
+    { name: "Rum 7", description: "Tomt rum", npc: null },
+    { name: "Rum 8", description: "Tomt rum", npc: null },
+    { name: "Rum 9", description: "Tomt rum", npc: null },
+    { name: "Boss - Sikael", description: "Sista mötet!", npc: "Sikael", npcX: 600, npcY: 300 }
 ];
 
 // Tangenttillstånd
 const keys = {};
+
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;
 });
+
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
 });
@@ -36,35 +49,65 @@ window.addEventListener("keyup", (e) => {
 function update() {
     // Rörelse
     const speed = 5;
-    if (keys["ArrowUp"] || keys["w"]) playerY -= speed;
-    if (keys["ArrowDown"] || keys["s"]) playerY += speed;
-    if (keys["ArrowLeft"] || keys["a"]) playerX -= speed;
-    if (keys["ArrowRight"] || keys["d"]) playerX += speed;
-
-    // Håll spelaren inom canvas
-    playerX = Math.max(playerSize, Math.min(canvas.width - playerSize, playerX));
-    playerY = Math.max(playerSize, Math.min(canvas.height - playerSize, playerY));
-
-    // Z för nästa rum
-    if (keys["z"] || keys["Z"]) {
-        if (currentRoom < rooms.length - 1) {
-            currentRoom++;
-            playerX = canvas.width / 2;
-            playerY = canvas.height / 2;
-        }
-        keys["z"] = false;
-        keys["Z"] = false;
+    let moved = false;
+    let newX = playerX;
+    let newY = playerY;
+    
+    if (keys["ArrowUp"]) {
+        newY -= speed;
+        currentDirection = 0;
+        moved = true;
+    }
+    if (keys["ArrowDown"]) {
+        newY += speed;
+        currentDirection = 2;
+        moved = true;
+    }
+    if (keys["ArrowLeft"]) {
+        newX -= speed;
+        currentDirection = 3;
+        moved = true;
+    }
+    if (keys["ArrowRight"]) {
+        newX += speed;
+        currentDirection = 1;
+        moved = true;
     }
 
-    // X för föregående rum
-    if (keys["x"] || keys["X"]) {
-        if (currentRoom > 0) {
-            currentRoom--;
-            playerX = canvas.width / 2;
-            playerY = canvas.height / 2;
+    // Uppdatera animering endast när spelaren rör sig
+    if (moved) {
+        animationCounter++;
+        if (animationCounter >= animationSpeed) {
+            animationFrame = (animationFrame + 1) % 8;
+            animationCounter = 0;
         }
-        keys["x"] = false;
-        keys["X"] = false;
+    } else {
+        // Stå still - visa första framen för aktuell riktning
+        animationFrame = 0;
+        animationCounter = 0;
+    }
+
+    // Väggkollisioner - gå till nästa/föregående rum ENDAST om det finns ett rum
+    if (newY < 0 && currentRoom > 0) {
+        currentRoom--;
+        playerX = canvas.width / 2;
+        playerY = canvas.height - 20;
+    } else if (newY > canvas.height && currentRoom < rooms.length - 1) {
+        currentRoom++;
+        playerX = canvas.width / 2;
+        playerY = 20;
+    } else if (newX < 0 && currentRoom > 0) {
+        currentRoom--;
+        playerX = canvas.width - 20;
+        playerY = canvas.height / 2;
+    } else if (newX > canvas.width && currentRoom < rooms.length - 1) {
+        currentRoom++;
+        playerX = 20;
+        playerY = canvas.height / 2;
+    } else {
+        // Om vi inte går till nästa rum, uppdatera normalt
+        playerX = newX;
+        playerY = newY;
     }
 }
 
@@ -73,32 +116,52 @@ function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Rumsnamn
+    // Rumsnamn och info
     ctx.fillStyle = "#fff";
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
     ctx.fillText(rooms[currentRoom].name, 20, 30);
 
-    // Rumsinfo
     ctx.font = "16px Arial";
     ctx.fillText(rooms[currentRoom].description, 20, 60);
 
-    // NPC-info (om det finns)
-    if (rooms[currentRoom].npc && rooms[currentRoom].npc !== "?") {
-        ctx.font = "14px Arial";
+    // Rita NPC om det finns en
+    if (rooms[currentRoom].npc) {
+        const npcX = rooms[currentRoom].npcX;
+        const npcY = rooms[currentRoom].npcY;
+        
+        // Enkelt: NPC som en röd kvadrat för nu
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
+        
+        // NPC-namn
         ctx.fillStyle = "#ffff00";
-        ctx.fillText("NPC: " + rooms[currentRoom].npc, 20, 90);
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(rooms[currentRoom].npc, npcX, npcY + 25);
     }
 
-    // Rita spelaren (en enkel kvadrat för nu)
-    ctx.fillStyle = "#00ff00";
-    ctx.fillRect(playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize);
+    // Rita spelaren med sprite sheet
+    if (spriteSheet.complete) {
+        // Sprite sheet är 8 frames bred, 4 höga (upp, höger, ner, vänster)
+        const frameWidth = spriteSheet.width / 8;
+        const frameHeight = spriteSheet.height / 4;
+        
+        const sourceX = animationFrame * frameWidth;
+        const sourceY = currentDirection * frameHeight;
+        
+        ctx.drawImage(
+            spriteSheet,
+            sourceX, sourceY, frameWidth, frameHeight,
+            playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
+        );
+    }
 
     // Instruktioner
     ctx.fillStyle = "#888";
     ctx.font = "14px Arial";
     ctx.textAlign = "left";
-    ctx.fillText("Piltangenter: röra | Z: nästa rum | X: föregående rum", 20, canvas.height - 20);
+    ctx.fillText("Piltangenter: röra", 20, canvas.height - 20);
 }
 
 function gameLoop() {
@@ -108,4 +171,3 @@ function gameLoop() {
 }
 
 gameLoop();
-
