@@ -17,16 +17,23 @@ charaImages[1].src = "images/chara_höger_1.png";
 charaImages[2].src = "images/chara ner.png";
 charaImages[3].src = "images/chara vänster.png";
 
-// Spelarens position
+// Spelarens stats
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
 const playerSize = 64;
+let playerHP = 100;
+let maxHP = 100;
 
 // Riktning (0=upp, 1=höger, 2=ner, 3=vänster)
 let currentDirection = 2;
 
 // Nuvarande rum
 let currentRoom = 1;
+
+// Game state
+let gameState = "exploration"; // "exploration" eller "fight"
+let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
+let flowerAttacked = false;
 
 // Rum-data 
 const rooms = [
@@ -47,55 +54,89 @@ const keys = {};
 
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;
+    
+    // Fight-meny navigation
+    if (gameState === "fight") {
+        if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
+        if (e.key === "ArrowRight" && selectedButton < 3) selectedButton++;
+        if (e.key === "Enter") {
+            handleFightChoice();
+        }
+    }
 });
 
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
 });
 
+function handleFightChoice() {
+    if (selectedButton === 0) {
+        // Fight - inget händer (Flowie är snäll)
+        console.log("Du försöker attackera, men Flowie är för snäll!");
+    } else if (selectedButton === 3) {
+        // Mercy
+        playerHP -= 99;
+        flowerAttacked = true;
+        setTimeout(() => {
+            gameState = "exploration";
+            currentRoom = 2; // Till Farmor
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+        }, 2000);
+    }
+}
+
 function update() {
-    // Rörelse
-    const speed = 5;
-    let newX = playerX;
-    let newY = playerY;
-    
-    if (keys["ArrowUp"]) {
-        newY -= speed;
-        currentDirection = 0;
-    }
-    if (keys["ArrowDown"]) {
-        newY += speed;
-        currentDirection = 2;
-    }
-    if (keys["ArrowLeft"]) {
-        newX -= speed;
-        currentDirection = 3;
-    }
-    if (keys["ArrowRight"]) {
-        newX += speed;
-        currentDirection = 1;
+    // Om vi är i fight, starta Flowie-mötet automatiskt
+    if (currentRoom === 1 && gameState === "exploration") {
+        gameState = "fight";
+        selectedButton = 0;
     }
 
-    // Väggkollisioner
-    if (newY < 0 && currentRoom > 0) {
-        currentRoom--;
-        playerX = rooms[currentRoom].spawnX;
-        playerY = rooms[currentRoom].spawnY;
-    } else if (newY > canvas.height && currentRoom < rooms.length - 1) {
-        currentRoom++;
-        playerX = rooms[currentRoom].spawnX;
-        playerY = rooms[currentRoom].spawnY;
-    } else if (newX < 0 && currentRoom > 0) {
-        currentRoom--;
-        playerX = rooms[currentRoom].spawnX;
-        playerY = rooms[currentRoom].spawnY;
-    } else if (newX > canvas.width && currentRoom < rooms.length - 1) {
-        currentRoom++;
-        playerX = rooms[currentRoom].spawnX;
-        playerY = rooms[currentRoom].spawnY;
-    } else {
-        playerX = newX;
-        playerY = newY;
+    if (gameState === "exploration") {
+        // Rörelse
+        const speed = 5;
+        let newX = playerX;
+        let newY = playerY;
+        
+        if (keys["ArrowUp"]) {
+            newY -= speed;
+            currentDirection = 0;
+        }
+        if (keys["ArrowDown"]) {
+            newY += speed;
+            currentDirection = 2;
+        }
+        if (keys["ArrowLeft"]) {
+            newX -= speed;
+            currentDirection = 3;
+        }
+        if (keys["ArrowRight"]) {
+            newX += speed;
+            currentDirection = 1;
+        }
+
+        // Väggkollisioner
+        if (newY < 0 && currentRoom > 0) {
+            currentRoom--;
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+        } else if (newY > canvas.height && currentRoom < rooms.length - 1) {
+            currentRoom++;
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+        } else if (newX < 0 && currentRoom > 0) {
+            currentRoom--;
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+        } else if (newX > canvas.width && currentRoom < rooms.length - 1) {
+            currentRoom++;
+            playerX = rooms[currentRoom].spawnX;
+            playerY = rooms[currentRoom].spawnY;
+        } else {
+            playerX = newX;
+            playerY = newY;
+        }
     }
 }
 
@@ -118,7 +159,7 @@ function draw() {
     ctx.fillText(rooms[currentRoom].description, 20, 60);
 
     // Rita NPC
-    if (rooms[currentRoom].npc) {
+    if (rooms[currentRoom].npc && gameState === "exploration") {
         const npcX = rooms[currentRoom].npcX;
         const npcY = rooms[currentRoom].npcY;
         ctx.fillStyle = "#ff0000";
@@ -137,6 +178,56 @@ function draw() {
             playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
         );
     }
+
+    // HP-display
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, canvas.height - 20);
+
+    // Fight-meny
+    if (gameState === "fight") {
+        drawFightMenu();
+    }
+}
+
+function drawFightMenu() {
+    // Meny bakgrund
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.fillRect(0, 350, canvas.width, 250);
+    
+    // Knapp-texter
+    const buttons = ["Fight", "Act", "Item", "Mercy"];
+    const buttonWidth = 150;
+    const buttonHeight = 50;
+    const startX = 50;
+    const startY = 380;
+    
+    for (let i = 0; i < 4; i++) {
+        const x = startX + (i % 2) * 200;
+        const y = startY + (i > 1 ? 80 : 0);
+        
+        // Knapp-bakgrund
+        if (i === selectedButton) {
+            ctx.fillStyle = "#ffff00";
+        } else {
+            ctx.fillStyle = "#666";
+        }
+        ctx.fillRect(x, y, buttonWidth, buttonHeight);
+        
+        // Knapp-text
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(buttons[i], x + buttonWidth / 2, y + buttonHeight / 2);
+    }
+    
+    // Instruktion
+    ctx.fillStyle = "#fff";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Piltangenter: välja | Enter: välja", canvas.width / 2, 350);
 }
 
 function gameLoop() {
