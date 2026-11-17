@@ -26,6 +26,14 @@ const floweyImage = new Image();
 floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
 floweyImage.src = "images/flowie.png";
 
+const flowieFaces = [floweyImage];
+for (const file of ["Flowey_battle_fatal_Genocide.webp", "flower-flowers.gif", "Flowey_battle_laugh.png"]) {
+    const image = new Image();
+    image.onerror = () => console.error("Kunde inte ladda Flowies bild: " + file);
+    image.src = "images/" + file;
+    flowieFaces.push(image);
+}
+
 // Spelarens stats
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
@@ -46,9 +54,14 @@ let flowerAttacked = false;
 const flowieLines = [
     "Howdy! I'm FLOWIE. FLOWIE the FLOWER!",
     "This is love",
-    "take it"
+    "take it",
+    "I said take it",
+    "Here in the underground, it's kill or be killed",
+    "DIE!"
 ];
 let dialogueIndex = 0;
+let avoidedShots = 0;
+let stormBalls = [];
 const ball = { x: 400, y: 370, radius: 7, speed: 180, vx: 0, vy: 0 };
 let attackBarProgress = 0; // 0-100
 let zPressed = false; // Förhindra dubbelklick
@@ -92,10 +105,12 @@ window.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === "z" && !zPressed && !e.repeat) {
         zPressed = true;
         if (gameState === "dialogue") {
-            if (dialogueIndex < flowieLines.length - 1) {
-                dialogueIndex++;
-            } else {
+            if (dialogueIndex === 2 || dialogueIndex === 3) {
                 startBallAttack();
+            } else if (dialogueIndex === 5) {
+                startBallStorm();
+            } else {
+                dialogueIndex++;
             }
         } else if (gameState === "rescue") {
             currentRoom = 2;
@@ -127,12 +142,30 @@ function handleFightChoice() {
 }
 
 function startBallAttack() {
+    stormBalls = [];
     ball.x = 400;
     ball.y = 370;
     const distance = Math.hypot(heartX - ball.x, heartY - ball.y);
     ball.vx = distance === 0 ? 0 : (heartX - ball.x) / distance * ball.speed;
     ball.vy = distance === 0 ? ball.speed : (heartY - ball.y) / distance * ball.speed;
     gameState = "attack";
+}
+
+function startBallStorm() {
+    stormBalls = [];
+    for (let row = 0; row < 20; row++) {
+        for (let column = 0; column < 50; column++) {
+            stormBalls.push({ x: 106 + column * 12, y: 330 - row * 10 });
+        }
+    }
+    gameState = "attack";
+}
+
+function rescuePlayer() {
+    playerHP = Math.max(1, playerHP - 99);
+    flowerAttacked = true;
+    stormBalls = [];
+    gameState = "rescue";
 }
 
 function update(seconds = 1 / 60) {
@@ -142,6 +175,8 @@ function update(seconds = 1 / 60) {
         if (distance < 150) {
             gameState = "dialogue";
             dialogueIndex = 0;
+            avoidedShots = 0;
+            stormBalls = [];
             heartX = 400;
             heartY = 500;
             selectedButton = 0;
@@ -209,17 +244,26 @@ function update(seconds = 1 / 60) {
         heartX = Math.max(arenaX + heartSize + 2, Math.min(arenaX + arenaWidth - heartSize - 2, heartX));
         heartY = Math.max(arenaY + heartSize + 2, Math.min(arenaY + arenaHeight - heartSize - 2, heartY));
 
+        if (stormBalls.length > 0) {
+            for (const stormBall of stormBalls) {
+                stormBall.y += ball.speed * seconds;
+                if (Math.hypot(heartX - stormBall.x, heartY - stormBall.y) <= heartSize + ball.radius) {
+                    rescuePlayer();
+                    break;
+                }
+            }
+            return;
+        }
+
         ball.x += ball.vx * seconds;
         ball.y += ball.vy * seconds;
         if (Math.hypot(heartX - ball.x, heartY - ball.y) <= heartSize + ball.radius) {
-            playerHP = Math.max(1, playerHP - 99);
-            flowerAttacked = true;
-            gameState = "rescue";
+            rescuePlayer();
         } else if (ball.x < arenaX || ball.x > arenaX + arenaWidth ||
                    ball.y < arenaY || ball.y > arenaY + arenaHeight) {
-            // Ett undviket skott ger en ny chans, inte automatisk skada.
+            avoidedShots++;
             gameState = "dialogue";
-            dialogueIndex = 2;
+            dialogueIndex = avoidedShots === 1 ? 3 : 4;
         }
     }
 }
@@ -359,11 +403,14 @@ function drawAttackBar() {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 }
 
-function drawFlowie(x, y, size) {
-    if (!floweyImage.complete || floweyImage.naturalWidth === 0) return;
+function drawFlowie(x, y, size, image = floweyImage) {
+    if (!image.complete || image.naturalWidth === 0) return;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(floweyImage, x - size / 2, y - size / 2, size, size);
+    const scale = size / Math.max(image.naturalWidth, image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    ctx.drawImage(image, x - width / 2, y - height / 2, width, height);
     ctx.restore();
 }
 
@@ -424,10 +471,19 @@ function drawAttackScene() {
         ctx.textAlign = "center";
         ctx.fillText("Farmor", 400, 175);
     } else {
-        drawFlowie(400, 110, 120);
+        const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
+        drawFlowie(400, 110, 120, flowieFaces[faceIndex]);
     }
 
-    if (gameState === "attack" || (gameState === "dialogue" && dialogueIndex >= 1)) {
+    if (gameState === "attack" && stormBalls.length > 0) {
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        for (const stormBall of stormBalls) {
+            ctx.moveTo(stormBall.x + ball.radius, stormBall.y);
+            ctx.arc(stormBall.x, stormBall.y, ball.radius, 0, Math.PI * 2);
+        }
+        ctx.fill();
+    } else if (gameState === "attack" || (gameState === "dialogue" && dialogueIndex >= 1 && dialogueIndex <= 3)) {
         ctx.fillStyle = "#fff";
         ctx.beginPath();
         ctx.arc(gameState === "attack" ? ball.x : 400,

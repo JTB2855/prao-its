@@ -60,6 +60,9 @@
 - Status: **Ej definierat än**
 
 ## Kampsystem
+- 2026-11-17 – gjord: "Om man inte tar den när den flyger emot en" byter Flowie till andra bifogade bilden och säger "I said take it".
+- 2026-11-17 – gjord: Efter andra undvikandet säger Flowie "Here in the underground, it's kill or be killed" med flower-flowers.gif, sedan "DIE!" med Flowey_battle_laugh.png.
+- 2026-11-17 – gjord: "Den säger DIE! och skickar ut tusen bollar mot dig så du inte kan undvika." Vid träff tar spelaren 99 skada och Farmor räddar spelaren.
 - 2026-11-17 – gjord: Flowie säger "Howdy! I'm FLOWIE. FLOWIE the FLOWER!" → Z → "This is love" och visar en liten flygande boll → "take it". Bollen flyger mot hjärtat som spelaren kan flytta. Vid träff tar spelaren 99 skada och Farmor kommer och hjälper.
 - 2026-11-17 – gjord: "vi måste göra en konversation som flowie säger innan fight".
 - 2026-11-17 – ersatt: "menyn med fight och allt sånt kommer fram när man redan är i fightingläge med flowie" – Flowie-mötet börjar nu med samtalet i stället; menyvalen väntar.
