@@ -1,22 +1,27 @@
 const canvas = document.getElementById("spelplan");
 const ctx = canvas.getContext("2d");
 
-// Ladda character bilder
-const charaImages = {
+// Ladda character sprite sheets (8 frames per sheet)
+const charaSheets = {
     0: new Image(), // upp
     1: new Image(), // höger
     2: new Image(), // ner
     3: new Image()  // vänster
 };
-charaImages[0].src = "images/chara upp.png";
-charaImages[1].src = "images/chara höger.png";
-charaImages[2].src = "images/chara ner.png";
-charaImages[3].src = "images/chara vänster.png";
+charaSheets[0].src = "images/chara_upp_frames.png";
+charaSheets[1].src = "images/chara_höger_frames.png";
+charaSheets[2].src = "images/chara_ner_frames.png";
+charaSheets[3].src = "images/chara_vänster_frames.png";
 
 // Spelarens position
 let playerX = canvas.width / 2;
 let playerY = canvas.height / 2;
 const playerSize = 64;
+
+// Animering
+let animationFrame = 0;
+let animationCounter = 0;
+const animationSpeed = 8; // Fler = långsammare
 
 // Riktning (0=upp, 1=höger, 2=ner, 3=vänster)
 let currentDirection = 2; // Standard: ner
@@ -52,24 +57,42 @@ window.addEventListener("keyup", (e) => {
 function update() {
     // Rörelse
     const speed = 5;
+    let moved = false;
     let newX = playerX;
     let newY = playerY;
     
     if (keys["ArrowUp"]) {
         newY -= speed;
         currentDirection = 0;
+        moved = true;
     }
     if (keys["ArrowDown"]) {
         newY += speed;
         currentDirection = 2;
+        moved = true;
     }
     if (keys["ArrowLeft"]) {
         newX -= speed;
         currentDirection = 3;
+        moved = true;
     }
     if (keys["ArrowRight"]) {
         newX += speed;
         currentDirection = 1;
+        moved = true;
+    }
+
+    // Uppdatera animering
+    if (moved) {
+        animationCounter++;
+        if (animationCounter >= animationSpeed) {
+            animationFrame = (animationFrame + 1) % 8;
+            animationCounter = 0;
+        }
+    } else {
+        // Stå still - visa första framen
+        animationFrame = 0;
+        animationCounter = 0;
     }
 
     // Väggkollisioner - gå till nästa/föregående rum ENDAST om det finns ett rum
@@ -126,11 +149,19 @@ function draw() {
         ctx.fillText(rooms[currentRoom].npc, npcX, npcY + 25);
     }
 
-    // Rita spelaren (Chara)
-    const charaImg = charaImages[currentDirection];
-    if (charaImg.complete) {
+    // Rita spelaren (Chara) med animering
+    const charaSheet = charaSheets[currentDirection];
+    if (charaSheet.complete) {
+        // Sprite sheet är 8 frames på en rad
+        const frameWidth = charaSheet.width / 8;
+        const frameHeight = charaSheet.height;
+        
+        const sourceX = animationFrame * frameWidth;
+        const sourceY = 0;
+        
         ctx.drawImage(
-            charaImg,
+            charaSheet,
+            sourceX, sourceY, frameWidth, frameHeight,
             playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
         );
     }
