@@ -7,7 +7,7 @@
 | Din figur | Undertale | Roll |
 |-----------|-----------|------|
 | **Chara (du)** | Frisk | Du är huvudpersonen |
-| **Sikael (boss)** | Asgore | Bossenessen i slutet, Sans-attacker fast med "dator" istället för ben |
+| **Sikael (boss)** | Asgore | Bossen i slutet, med ben och laserkanoner inspirerade av Sans |
 | **Flowie** | Flowey | Blomma i skogsdungen, verkar snäll men är elak |
 | **Farmor** | Toriel | Räddar dig, ger körsbärspaj |
 | **Papyrus** | Papyrus | Skelett i grottan, corny jokes |
@@ -95,17 +95,18 @@
 - Status: **Detaljer ej definierat än**
 
 ## Sikael (boss, slutet)
+- 2026-11-18 – gjord: "gör gärna så spelet är så likt som möjligt" – egen version med fem åttasekundersmönster: benstorm med kanoner, bentunnel, hopp över ben från båda håll, blå ben som är ofarliga när hjärtat står still och riktade laserkanoner. Kanoner låser siktet och laddar i 0,75 sekunder före skott. Blått hjärta dras nedåt; håll upp för höga/upprepade hopp, släpp för kortare hopp. Arenans bredd varierar. Alla fem mönster har testats utan skada vid 30, 60 och 120 bilder per sekund. Datorattackerna ersätts. Ingen kopierad kod eller grafik; inte exakt samma attacker eller uppmätt fysik som simulatorn. Sikael, menyn, 100 HP, pajen och omstarten behålls.
 - 2026-11-18 – gjord: "använd den här bilden som Sikael" – bifogad figur i blå tröja ersätter datorfiguren i bossfighten. Attackernas utseende och mekanik ändras inte i detta steg.
-- 2026-11-18 – ej gjord: "attackerna ska vara samma. Med samma gravitation och samma bilder på attackerna" som referenssimuleringen. Eleven vill inte ha de förenklade datormönstren. Behöver bekräftas om bilder av ben ska ersätta tidigare datoridé.
-- 2026-11-18 – gjord: Godkänd egen Sans-inspirerad stridsversion med tre fasta åttasekundersmönster: datorväggar med luckor, blått hjärta med gravitation och hopp (uppil), samt laserfält som varnas en sekund före skott. Mönstren upprepas i ordning. Rött hjärta styrs fritt med pilarna. Menyn, kafferepliken, 100 HP, pajen och omstarten behålls. Inte en exakt kopia av simuleringen.
+- 2026-11-18 – aktuell: "attackerna ska vara samma. Med samma gravitation och samma bilder på attackerna" som referenssimuleringen. Eleven vill inte ha de förenklade datormönstren och har godkänt ben och laserkanoner i stället för datorer. Exakt likhet är inte uppnådd.
+- 2026-11-18 – ersatt: Godkänd egen Sans-inspirerad stridsversion med tre fasta åttasekundersmönster: datorväggar med luckor, blått hjärta med gravitation och hopp (uppil), samt laserfält som varnas en sekund före skott. Mönstren upprepas i ordning. Rött hjärta styrs fritt med pilarna. Menyn, kafferepliken, 100 HP, pajen och omstarten behålls. Inte en exakt kopia av simuleringen.
 - 2026-11-18 – aktuell: "tills dess vill jag att fightingen ska vara samma" som https://jcw87.github.io/c2-sans-fight/ – eleven ordnar Sikaels bild senare och vill nu prioritera stridsmekaniken.
 - 2026-11-18 – gjord: "nu sitter hp baren ovanför sikael så det ser ut som att sikael har 100hp" – CHARA och spelarens HP visas på samma plats under arenan genom hela striden. Arena och slider anpassade för att inte överlappa.
 - 2026-11-18 – gjord: Först ska menyn likna simuleringen: visa "CHARA", gul HP-stapel och aktuellt/max HP, men ingen LV eftersom nivåsystem saknas. Fyra inramade menyval på rad; rött hjärta markerar valt alternativ. Funktioner och attacker behålls.
 - 2026-11-18 – ej gjord: "Jag vill att vi gör likadant med Sikael fighten" – referens: https://jcw87.github.io/c2-sans-fight/. Vilka mekaniker som prioriteras bestäms med eleven.
 - 2026-11-18 – gjord: "Repliker före striden" – Sikaels samtal visas innan stridsmenyn.
 - 2026-11-18 – gjord: Sikael säger "Du får inte ta mitt kaffe" före striden. Z öppnar stridsmenyn; repliken visas även vid nytt försök.
-- **Samma attacker som Sans från Undertale** – men "dator" istället för ben
-- Status: **Väntar på bildernas design**
+- Ursprunglig idé, ersatt 2026-11-18: **Samma attacker som Sans från Undertale** – men "dator" istället för ben. Nu används ben och laserkanoner.
+- Status: **Spelbar egen version – eleven testar likheten med förebilden**
 
 ## Grafikk
 - 2026-11-17 – gjord: "Använd den här bilden som farmor" – den bifogade bilden används vid räddningen och i Farmors rum.
