@@ -185,6 +185,7 @@ window.addEventListener("keydown", (e) => {
                 dialogueIndex++;
             }
         } else if (gameState === "rescue") {
+            playerHP = maxHP;
             currentRoom = 2;
             playerX = rooms[currentRoom].spawnX;
             playerY = rooms[currentRoom].spawnY;

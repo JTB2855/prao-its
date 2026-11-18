@@ -84,6 +84,7 @@
 - **Försvar:** Undvik inkommande attacker
 
 ## HP-system
+- 2026-11-18 – gjord: "vi får 100 hälsa när farmor hjälper oss" – efter Flowies 99 skada återställer Z efter Farmors räddningsreplik hälsan till 100/100 innan spelaren kommer till huset.
 - **Du (Sikael) startar med:** (Väntar på info)
 - Visas överst på skärmen
 
