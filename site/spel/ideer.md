@@ -1,5 +1,6 @@
 # Idéer för spelet
 
+- 2026-11-18 – gjord: Stavtunneln i början har 18 stavpar i stället för 12, och DETERMINATION-tunneln har 22 i stället för 14. Stavarna kommer tätare, men öppningarnas bredd, stavarnas hastighet och lasrarnas tajming är oförändrade. Båda attackerna klarades utan skada i webbläsartester vid 30, 60 och 120 bilder per sekund.
 - 2026-11-18 – gjord: De två strålarna i fjärde laservågen i början av Sikael-striden har bredare blått sken och större datorer för att visa ”mycket firepower”. Träffytan, tajmingen och de andra vågorna är oförändrade. Testat i webbläsaren.
 - 2026-11-18 – gjord: "datorerna skulle vara vinklade mot hjärtat. inte mot mig, alltså ut ur skärmen" – datorerna visas snett från sidan, med skärmytan vänd längs strålen in i arenan. Siktet och träffytan är oförändrade. Testat från fyra håll och diagonalt.
 - 2026-11-18 – gjord: "byt ut kanonerna mot datorer som skjuter ut en stråle mot skärmen och benen mot vanliga vita stavar. inga ben". Eleven godkände datorer med stråle från skärmen och oförändrad riktning, hastighet och skada. Alla ben, även vägg- och golvattacker, ritas som raka stavar. Blå stavar behåller färgen och regeln att stå still. Attacknamn och repliken vid AGERA är anpassade. Ersätter tidigare ben- och kanonutseende; historiken sparas.
