@@ -350,6 +350,10 @@ window.addEventListener("keydown", (e) => {
         if (gameState === "boss-menu" && !e.repeat) {
             if (e.key === "ArrowLeft") selectedButton = Math.max(0, selectedButton - 1);
             if (e.key === "ArrowRight") selectedButton = Math.min(3, selectedButton + 1);
+            if (e.key.toLowerCase() === "k") {
+                boss.hp = 5;
+                boss.message = "Fuskkod: Sikael har nu 5 hälsa.";
+            }
         }
         if (gameState === "boss-items" && e.key.toLowerCase() === "x" && !e.repeat) {
             e.preventDefault();

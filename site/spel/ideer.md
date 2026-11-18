@@ -1,5 +1,6 @@
 # Idéer för spelet
 
+- 2026-11-18 – gjord: "om jag klickar på k under fighten så hamnar sikael på 5 hälsa" – bara i huvudmenyn med SLÅSS, AGERA, FÖREMÅL och SKONA. Eleven godkände att K sätter hälsan till 5 och att nästa SLÅSS testar lunchen eller avslutet som vanligt. Fungerar i båda faserna, inte i pajmenyn eller under attacker. Tangentupprepning ignoreras. 20 kontroller av bland annat menybegränsning, lunch, vinst och omstart är godkända.
 - 2026-11-18 – gjord: "översätt allt förutom determination till svenska i spelet" – eleven godkände svenska repliker, menyer, upplockningsmeddelanden och hälsotexter. Knapparna heter SLÅSS, AGERA, FÖREMÅL och SKONA. Figurernas namn och DETERMINATION behålls. Ersätter tidigare önskemål om exakta engelska texter; historiken nedan sparas.
 
 **Status:** Pågår – bygger första versionen. Väntar på pixlerade bilder för karaktärerna.
