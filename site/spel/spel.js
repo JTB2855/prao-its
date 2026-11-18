@@ -23,7 +23,7 @@ const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0, spawnTimer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false
 };
-const bossArena = { left: 102, right: 698, top: 352, bottom: 548 };
+const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 
 // Ladda character stillframes
 const charaImages = {
@@ -232,7 +232,7 @@ function startBossDefense() {
     boss.invincibleTime = 0;
     boss.projectiles = [];
     heartX = 400;
-    heartY = 480;
+    heartY = (bossArena.top + bossArena.bottom) / 2;
     gameState = "boss-defend";
 }
 
@@ -609,17 +609,17 @@ function drawFightMenu() {
 function drawAttackBar() {
     // Meny bakgrund
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-    ctx.fillRect(0, 450, canvas.width, 150);
+    ctx.fillRect(0, 350, canvas.width, 110);
     
     // Instruktion
     ctx.fillStyle = "#fff";
     ctx.font = "18px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Tryck Z när markören är i mitten!", canvas.width / 2, 480);
+    ctx.fillText("Tryck Z när markören är i mitten!", canvas.width / 2, 380);
     
     // Attack-bar bakgrund
     const barX = 100;
-    const barY = 520;
+    const barY = 410;
     const barWidth = 600;
     const barHeight = 40;
     
@@ -770,7 +770,7 @@ function drawBoss() {
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
     ctx.fillStyle = "#fff";
-    drawBossStatus(gameState === "boss-menu" ? 492 : 35);
+    drawBossStatus(492);
     ctx.font = "16px monospace";
     ctx.fillText("Paj: " + (hasPie ? "1" : "0"), 30, 70);
     ctx.textAlign = "center";
@@ -792,7 +792,8 @@ function drawBoss() {
     } else if (gameState === "boss-defend") {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 3;
-        ctx.strokeRect(100, 350, 600, 200);
+        ctx.strokeRect(bossArena.left - 2, bossArena.top - 2,
+            bossArena.right - bossArena.left + 4, bossArena.bottom - bossArena.top + 4);
         ctx.save();
         ctx.beginPath();
         ctx.rect(bossArena.left, bossArena.top, bossArena.right - bossArena.left, bossArena.bottom - bossArena.top);

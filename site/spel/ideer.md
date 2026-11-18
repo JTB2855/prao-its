@@ -94,6 +94,7 @@
 - Status: **Detaljer ej definierat än**
 
 ## Sikael (boss, slutet)
+- 2026-11-18 – gjord: "nu sitter hp baren ovanför sikael så det ser ut som att sikael har 100hp" – CHARA och spelarens HP visas på samma plats under arenan genom hela striden. Arena och slider anpassade för att inte överlappa.
 - 2026-11-18 – gjord: Först ska menyn likna simuleringen: visa "CHARA", gul HP-stapel och aktuellt/max HP, men ingen LV eftersom nivåsystem saknas. Fyra inramade menyval på rad; rött hjärta markerar valt alternativ. Funktioner och attacker behålls.
 - 2026-11-18 – ej gjord: "Jag vill att vi gör likadant med Sikael fighten" – referens: https://jcw87.github.io/c2-sans-fight/. Vilka mekaniker som prioriteras bestäms med eleven.
 - 2026-11-18 – gjord: "Repliker före striden" – Sikaels samtal visas innan stridsmenyn.
