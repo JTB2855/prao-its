@@ -1,5 +1,6 @@
 # Idéer för spelet
 
+- 2026-11-18 – gjord: "datorerna skulle vara vinklade mot hjärtat. inte mot mig, alltså ut ur skärmen" – datorerna visas snett från sidan, med skärmytan vänd längs strålen in i arenan. Siktet och träffytan är oförändrade. Testat från fyra håll och diagonalt.
 - 2026-11-18 – gjord: "byt ut kanonerna mot datorer som skjuter ut en stråle mot skärmen och benen mot vanliga vita stavar. inga ben". Eleven godkände datorer med stråle från skärmen och oförändrad riktning, hastighet och skada. Alla ben, även vägg- och golvattacker, ritas som raka stavar. Blå stavar behåller färgen och regeln att stå still. Attacknamn och repliken vid AGERA är anpassade. Ersätter tidigare ben- och kanonutseende; historiken sparas.
 - 2026-11-18 – gjord: "Det sista han säger är 'jag underskattade dig'. sen försvinner han." Eleven godkände att sista slaget i andra fasen visar repliken och att Z sedan startar stoftanimationen. Första fasens lunch är oförändrad. 18 kontroller omfattar lunch, replik, tangentupprepning, stoft, omstart, raka vita/blå stavar och datorrendering. Datorns utseende är också kontrollerat i webbläsaren.
 - 2026-11-18 – ej gjord: Eleven vill ha låten från Sans-striden och samma ljudeffekter som i Undertale under Sikael-striden. Föreslaget alternativ: egna spelljud eller ljud som får publiceras. Ljudval återstår.

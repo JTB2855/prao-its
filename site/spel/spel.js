@@ -1380,18 +1380,43 @@ function drawBossCannon(hazard) {
     if (hazard.age > firingEnd) {
         ctx.globalAlpha = Math.max(0, 1 - (hazard.age - firingEnd) / bossLaser.fade);
     }
+    ctx.fillStyle = "#858e9a";
+    ctx.fillRect(-31, 12, 9, 14);
+    ctx.fillRect(-41, 26, 31, 5);
+
+    ctx.fillStyle = "#606a78";
+    ctx.beginPath();
+    ctx.moveTo(-44, -15);
+    ctx.lineTo(-8, -23);
+    ctx.lineTo(-8, 23);
+    ctx.lineTo(-44, 15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#343b45";
+    for (let x = -37; x <= -22; x += 5) ctx.fillRect(x, -6, 2, 12);
+
+    // Den smala skärmytan ligger på framsidan, vid strålens startpunkt.
     ctx.fillStyle = "#bfc5cd";
-    ctx.fillRect(-46, -24, 46, 42);
-    ctx.fillRect(-28, 18, 10, 8);
-    ctx.fillRect(-39, 26, 32, 5);
-    ctx.fillStyle = "#111";
-    ctx.fillRect(-41, -19, 36, 30);
+    ctx.beginPath();
+    ctx.moveTo(-8, -23);
+    ctx.lineTo(8, -17);
+    ctx.lineTo(8, 17);
+    ctx.lineTo(-8, 23);
+    ctx.closePath();
+    ctx.fill();
+    const firing = hazard.age >= hazard.warning && hazard.age < firingEnd;
     ctx.fillStyle = hazard.age < hazard.warning ? "#42dfff" : "#ffea00";
-    ctx.fillRect(-38, -16, 30, 24);
-    ctx.fillRect(-8, -4, 8, 8);
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(-35, -12, 12, 3);
-    ctx.fillRect(-35, -6, 20, 3);
+    ctx.beginPath();
+    ctx.moveTo(-5, -17);
+    ctx.lineTo(5, -13);
+    ctx.lineTo(5, 13);
+    ctx.lineTo(-5, 17);
+    ctx.closePath();
+    ctx.fill();
+    if (firing) {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, -Math.min(7, hazard.beamWidth / 2), 8, Math.min(14, hazard.beamWidth));
+    }
     ctx.restore();
 }
 
