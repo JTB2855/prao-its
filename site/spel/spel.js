@@ -70,7 +70,7 @@ const bossPatterns = [
         { time: 6.4, type: "volley", layout: "edges" },
         { time: 7.6, type: "volley", layout: "final" }
     ] },
-    { name: "Benstorm", mode: "blue", width: 596, duration: 8, events: [
+    { name: "Stavstorm", mode: "blue", width: 596, duration: 8, events: [
         { time: 0.6, type: "hurdle", height: 28, speed: -280 },
         { time: 1.4, type: "hurdle", height: 38, speed: -280 },
         { time: 2.2, type: "hurdle", height: 28, speed: -280 },
@@ -79,7 +79,7 @@ const bossPatterns = [
         { time: 5.3, type: "cannon", side: "right" },
         { time: 6.1, type: "cannon", side: "top" }
     ] },
-    { name: "Bentunneln", mode: "red", width: 360, duration: 8, events: [
+    { name: "Stavtunneln", mode: "red", width: 360, duration: 8, events: [
         { time: 0.4, type: "wall", gapY: 375, speed: -240 },
         { time: 1.2, type: "wall", gapY: 415, speed: -240 },
         { time: 2.0, type: "wall", gapY: 375, speed: -240 },
@@ -88,7 +88,7 @@ const bossPatterns = [
         { time: 4.4, type: "wall", gapY: 415, speed: -240 },
         { time: 5.2, type: "wall", gapY: 395, speed: -240 }
     ] },
-    { name: "Ben från båda håll", mode: "blue", width: 280, duration: 8, events: [
+    { name: "Stavar från båda håll", mode: "blue", width: 280, duration: 8, events: [
         { time: 0.6, type: "hurdle", height: 28, speed: -220 },
         { time: 1.5, type: "hurdle", height: 38, speed: 220 },
         { time: 2.4, type: "hurdle", height: 28, speed: -220 },
@@ -97,14 +97,14 @@ const bossPatterns = [
         { time: 5.1, type: "hurdle", height: 38, speed: 220 },
         { time: 6.0, type: "hurdle", height: 28, speed: -220 }
     ] },
-    { name: "Blå ben: stå still!", mode: "red", width: 280, duration: 8, events: [
+    { name: "Blå stavar: stå still!", mode: "red", width: 280, duration: 8, events: [
         { time: 0.5, type: "blue-wall", speed: -230 },
         { time: 1.8, type: "wall", gapY: 375, speed: -230 },
         { time: 3.1, type: "blue-wall", speed: 230 },
         { time: 4.4, type: "wall", gapY: 415, speed: -230 },
         { time: 5.7, type: "blue-wall", speed: -230 }
     ] },
-    { name: "Laserkanoner", mode: "red", width: 280, duration: 8, events: [
+    { name: "Laserdatorer", mode: "red", width: 280, duration: 8, events: [
         { time: 0.4, type: "cannon", side: "left" },
         { time: 1.2, type: "cannon", side: "top" },
         { time: 2.0, type: "cannon", side: "right" },
@@ -119,7 +119,7 @@ const bossPatterns = [
 ];
 
 const bossHardPatterns = [
-    { name: "DETERMINATION: Bentunnel", mode: "red", width: 300, duration: 8, events: [
+    { name: "DETERMINATION: Stavtunnel", mode: "red", width: 300, duration: 8, events: [
         { time: 0.3, type: "wall", gapY: 370, speed: -360 },
         { time: 0.75, type: "wall", gapY: 400, speed: -360 },
         { time: 1.2, type: "wall", gapY: 430, speed: -360 },
@@ -135,7 +135,7 @@ const bossHardPatterns = [
         { time: 5.7, type: "wall", gapY: 370, speed: -360 },
         { time: 6.15, type: "wall", gapY: 400, speed: -360 }
     ] },
-    { name: "DETERMINATION: Benrusning", mode: "blue", width: 300, duration: 8, events: [
+    { name: "DETERMINATION: Stavrusning", mode: "blue", width: 300, duration: 8, events: [
         { time: 0.4, type: "hurdle", height: 34, speed: -340 },
         { time: 1.1, type: "hurdle", height: 42, speed: 340 },
         { time: 1.8, type: "hurdle", height: 34, speed: -340 },
@@ -165,7 +165,7 @@ const bossHardPatterns = [
         { time: 6.25, type: "cannon", side: "left", warning: 0.45 },
         { time: 6.25, type: "cannon", side: "top", warning: 0.45 }
     ] },
-    { name: "Plattformar över ben", mode: "blue", width: 360, duration: 9,
+    { name: "Plattformar över stavar", mode: "blue", width: 360, duration: 9,
         startX: 285, platforms: [
             { x: 250, y: 425, width: 80, vx: 0 },
             { x: 365, y: 395, width: 70, vx: 0 },
@@ -217,7 +217,7 @@ const bossHardPatterns = [
         { time: 5.9, type: "slam", direction: "down" },
         { time: 7.3, type: "slam", direction: "left" }
     ] },
-    { name: "Ben uppifrån och nerifrån", mode: "red", width: 360, duration: 9, events: [
+    { name: "Stavar uppifrån och nerifrån", mode: "red", width: 360, duration: 9, events: [
         { time: 0.4, type: "vertical-wall", gapX: 320, speed: 240 },
         { time: 1.05, type: "vertical-wall", gapX: 400, speed: -240 },
         { time: 1.7, type: "vertical-wall", gapX: 480, speed: 240 },
@@ -453,6 +453,8 @@ function handleBossChoice() {
         startBoss(true);
     } else if (gameState === "boss-intro") {
         startBossDefense();
+    } else if (gameState === "boss-farewell") {
+        startBossDeath();
     } else if (gameState === "boss-lunch") {
         boss.lunchLine++;
         if (boss.lunchLine === 2) {
@@ -481,7 +483,7 @@ function handleBossChoice() {
             boss.message = "Dina föremål";
         } else {
             boss.message = selectedButton === 1
-                ? "Sikael: Visa hur du undviker mina ben och lasrar!"
+                ? "Sikael: Visa hur du undviker mina stavar och lasrar!"
                 : "Sikael är inte redo att ge upp. Välj SLÅSS.";
         }
     } else if (gameState === "boss-slider") {
@@ -494,7 +496,10 @@ function handleBossChoice() {
             boss.message = bossLunchLines[0];
             gameState = "boss-lunch";
         } else if (boss.hp === 0) {
-            startBossDeath();
+            boss.projectiles = [];
+            boss.platforms = [];
+            boss.message = "jag underskattade dig";
+            gameState = "boss-farewell";
         } else {
             startBossDefense();
         }
@@ -1360,17 +1365,7 @@ function drawBossHazard(hazard) {
         drawBossHazard({ type: hazard.type, x: 0, y: 0, width: hazard.height, height: hazard.width });
     } else {
         ctx.fillStyle = hazard.type === "blue-bone" ? "#42dfff" : "#fff";
-        const x = Math.round(hazard.x);
-        const y = Math.round(hazard.y);
-        ctx.beginPath();
-        ctx.rect(x, y, hazard.width, hazard.height);
-        ctx.clip();
-        ctx.fillRect(x + 4, y + 3, hazard.width - 8, hazard.height - 6);
-        for (const endY of [y, y + hazard.height - 6]) {
-            ctx.fillRect(x, endY + 1, 6, 5);
-            ctx.fillRect(x + hazard.width - 6, endY + 1, 6, 5);
-            ctx.fillRect(x + 3, endY + 2, hazard.width - 6, 4);
-        }
+        ctx.fillRect(hazard.x, hazard.y, hazard.width, hazard.height);
     }
     ctx.restore();
 }
@@ -1385,28 +1380,18 @@ function drawBossCannon(hazard) {
     if (hazard.age > firingEnd) {
         ctx.globalAlpha = Math.max(0, 1 - (hazard.age - firingEnd) / bossLaser.fade);
     }
-    const open = hazard.age >= hazard.warning ? 9 : 3;
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.moveTo(-26, -13);
-    ctx.lineTo(-14, -23);
-    ctx.lineTo(9, -18);
-    ctx.lineTo(25, -9 - open);
-    ctx.lineTo(25, -open);
-    ctx.lineTo(0, -4);
-    ctx.lineTo(0, 4);
-    ctx.lineTo(25, open);
-    ctx.lineTo(25, 9 + open);
-    ctx.lineTo(9, 18);
-    ctx.lineTo(-14, 23);
-    ctx.lineTo(-26, 13);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#000";
-    ctx.fillRect(-17, -11, 12, 8);
-    ctx.fillRect(-17, 3, 12, 8);
+    ctx.fillStyle = "#bfc5cd";
+    ctx.fillRect(-46, -24, 46, 42);
+    ctx.fillRect(-28, 18, 10, 8);
+    ctx.fillRect(-39, 26, 32, 5);
+    ctx.fillStyle = "#111";
+    ctx.fillRect(-41, -19, 36, 30);
     ctx.fillStyle = hazard.age < hazard.warning ? "#42dfff" : "#ffea00";
-    ctx.fillRect(-12, -9, 5, 4);
+    ctx.fillRect(-38, -16, 30, 24);
+    ctx.fillRect(-8, -4, 8, 8);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(-35, -12, 12, 3);
+    ctx.fillRect(-35, -6, 20, 3);
     ctx.restore();
 }
 
@@ -1447,6 +1432,11 @@ function drawBoss() {
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
         ctx.fillText("Z: starta striden – Sikael attackerar först!", 400, 410);
+    } else if (gameState === "boss-farewell") {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(100, 350, 600, 100);
+        ctx.fillText("Z: fortsätt", 400, 410);
     } else if (gameState === "boss-lunch") {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
