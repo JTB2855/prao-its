@@ -74,6 +74,10 @@ const farmorImage = new Image();
 farmorImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor.");
 farmorImage.src = "images/farmor.png";
 
+const sikaelImage = new Image();
+sikaelImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael.");
+sikaelImage.src = "images/sikael.png";
+
 const farmorRescueImage = new Image();
 farmorRescueImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor vid räddningen.");
 farmorRescueImage.src = "images/farmor-raddning.png";
@@ -893,7 +897,7 @@ function drawBoss() {
     ctx.font = "16px monospace";
     ctx.fillText("Paj: " + (hasPie ? "1" : "0"), 30, 70);
     ctx.textAlign = "center";
-    drawComputer(400, 155, 140);
+    drawCharacter(400, 145, 190, sikaelImage);
     ctx.fillStyle = "#fff";
     ctx.fillText("SIKAEL  HP " + boss.hp + "/" + boss.maxHP, 400, 265);
     ctx.font = "18px Arial";

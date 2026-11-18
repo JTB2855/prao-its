@@ -94,6 +94,8 @@
 - Status: **Detaljer ej definierat än**
 
 ## Sikael (boss, slutet)
+- 2026-11-18 – gjord: "använd den här bilden som Sikael" – bifogad figur i blå tröja ersätter datorfiguren i bossfighten. Attackernas utseende och mekanik ändras inte i detta steg.
+- 2026-11-18 – ej gjord: "attackerna ska vara samma. Med samma gravitation och samma bilder på attackerna" som referenssimuleringen. Eleven vill inte ha de förenklade datormönstren. Behöver bekräftas om bilder av ben ska ersätta tidigare datoridé.
 - 2026-11-18 – gjord: Godkänd egen Sans-inspirerad stridsversion med tre fasta åttasekundersmönster: datorväggar med luckor, blått hjärta med gravitation och hopp (uppil), samt laserfält som varnas en sekund före skott. Mönstren upprepas i ordning. Rött hjärta styrs fritt med pilarna. Menyn, kafferepliken, 100 HP, pajen och omstarten behålls. Inte en exakt kopia av simuleringen.
 - 2026-11-18 – aktuell: "tills dess vill jag att fightingen ska vara samma" som https://jcw87.github.io/c2-sans-fight/ – eleven ordnar Sikaels bild senare och vill nu prioritera stridsmekaniken.
 - 2026-11-18 – gjord: "nu sitter hp baren ovanför sikael så det ser ut som att sikael har 100hp" – CHARA och spelarens HP visas på samma plats under arenan genom hela striden. Arena och slider anpassade för att inte överlappa.
