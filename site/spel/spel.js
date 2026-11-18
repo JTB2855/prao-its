@@ -327,6 +327,9 @@ farmorImage.src = "images/farmor.png";
 const sikaelImage = new Image();
 sikaelImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael.");
 sikaelImage.src = "images/sikael.png";
+const sikaelKneelingImage = new Image();
+sikaelKneelingImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael på knä.");
+sikaelKneelingImage.src = "images/sikael-kna.png";
 
 const farmorRescueImage = new Image();
 farmorRescueImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor vid räddningen.");
@@ -570,13 +573,9 @@ function startBossDeath() {
         layer.width = 190;
         layer.height = 190;
         const layerContext = layer.getContext("2d");
-        layerContext.imageSmoothingEnabled = false;
-        if (sikaelImage.complete && sikaelImage.naturalWidth > 0) {
-            const scale = 190 / Math.max(sikaelImage.naturalWidth, sikaelImage.naturalHeight);
-            const width = sikaelImage.naturalWidth * scale;
-            const height = sikaelImage.naturalHeight * scale;
-            layerContext.drawImage(sikaelImage, (190 - width) / 2, (190 - height) / 2, width, height);
-        }
+        layerContext.translate(-305, -50);
+        drawSikael(true, layerContext);
+        layerContext.resetTransform();
         if (layer === bossDeath.dust) {
             // Behåll bildens genomskinliga delar när stoftet färgas vitt.
             layerContext.globalCompositeOperation = "source-in";
@@ -1279,15 +1278,23 @@ function drawAttackBar() {
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 }
 
-function drawCharacter(x, y, size, image) {
+function drawCharacter(x, y, size, image, context = ctx) {
     if (!image.complete || image.naturalWidth === 0) return;
-    ctx.save();
-    ctx.imageSmoothingEnabled = false;
+    context.save();
+    context.imageSmoothingEnabled = false;
     const scale = size / Math.max(image.naturalWidth, image.naturalHeight);
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
-    ctx.drawImage(image, x - width / 2, y - height / 2, width, height);
-    ctx.restore();
+    context.drawImage(image, x - width / 2, y - height / 2, width, height);
+    context.restore();
+}
+
+function drawSikael(kneeling, context = ctx) {
+    if (kneeling && sikaelKneelingImage.complete && sikaelKneelingImage.naturalWidth > 0) {
+        drawCharacter(400, 165, 150, sikaelKneelingImage, context);
+    } else {
+        drawCharacter(400, 145, 190, sikaelImage, context);
+    }
 }
 
 function drawDialogue() {
@@ -1576,7 +1583,7 @@ function drawBoss() {
         ctx.restore();
         return;
     }
-    drawCharacter(400, 145, 190, sikaelImage);
+    drawSikael(gameState === "boss-farewell");
     ctx.fillStyle = "#fff";
     ctx.fillText("SIKAEL  HÄLSA " + boss.hp + "/" + boss.maxHP, 400, 265);
     if (boss.determination) {
