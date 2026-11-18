@@ -94,6 +94,8 @@
 - Status: **Detaljer ej definierat än**
 
 ## Sikael (boss, slutet)
+- 2026-11-18 – gjord: "Repliker före striden" – Sikaels samtal visas innan stridsmenyn.
+- 2026-11-18 – gjord: Sikael säger "Du får inte ta mitt kaffe" före striden. Z öppnar stridsmenyn; repliken visas även vid nytt försök.
 - **Samma attacker som Sans från Undertale** – men "dator" istället för ben
 - Status: **Väntar på bildernas design**
 

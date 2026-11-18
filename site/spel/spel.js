@@ -185,14 +185,17 @@ function startBoss(retry = false) {
     boss.hp = boss.maxHP;
     boss.turn = 0;
     boss.projectiles = [];
-    boss.message = "Sikael: Du har kommit långt. Är du redo?";
+    boss.message = "Sikael: Du får inte ta mitt kaffe";
     selectedButton = 0;
-    gameState = "boss-menu";
+    gameState = "boss-intro";
 }
 
 function handleBossChoice() {
     if (gameState === "boss-lost" || gameState === "boss-won") {
         startBoss(true);
+    } else if (gameState === "boss-intro") {
+        boss.message = "Din tur! Fight attackerar. Item använder pajen.";
+        gameState = "boss-menu";
     } else if (gameState === "boss-menu") {
         if (selectedButton === 0) {
             attackBarProgress = 0;
@@ -738,7 +741,12 @@ function drawBoss() {
     ctx.font = "18px Arial";
     ctx.fillText(boss.message, 400, 305);
 
-    if (gameState === "boss-menu") {
+    if (gameState === "boss-intro") {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(100, 350, 600, 100);
+        ctx.fillText("Z: fortsätt till striden", 400, 410);
+    } else if (gameState === "boss-menu") {
         drawFightMenu();
     } else if (gameState === "boss-slider") {
         drawAttackBar();
