@@ -23,7 +23,7 @@ const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
     patternIndex: 0, nextEvent: 0, heartMode: "red", gravitySpeed: 0,
-    jumpRequested: false, lunchEaten: false, lunchLine: 0,
+    jumpRequested: false, lunchEaten: false, lunchLine: 0, farewellLine: 0,
     determination: false, phaseTurn: 0, lowHealthAttackUsed: false,
     gravityDirection: "down", platforms: []
 };
@@ -50,6 +50,10 @@ const bossLunchLines = [
     "Men jag tänker inte dö",
     "Sikael äter coop-lunch med trocadero! +250 hälsa",
     "DETERMINATION"
+];
+const bossFarewellLines = [
+    "Jag underskattade dig",
+    "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
 ];
 const bossPatterns = [
     { name: "Sikaels öppningsattack", mode: "blue", width: 300, top: 300, duration: 9.2, events: [
@@ -486,6 +490,7 @@ function startBoss(retry = false) {
     boss.hp = boss.maxHP;
     boss.lunchEaten = false;
     boss.lunchLine = 0;
+    boss.farewellLine = 0;
     boss.determination = false;
     boss.phaseTurn = 0;
     boss.lowHealthAttackUsed = false;
@@ -510,7 +515,12 @@ function handleBossChoice() {
     } else if (gameState === "boss-intro") {
         startBossDefense();
     } else if (gameState === "boss-farewell") {
-        startBossDeath();
+        boss.farewellLine++;
+        if (boss.farewellLine < bossFarewellLines.length) {
+            boss.message = bossFarewellLines[boss.farewellLine];
+        } else {
+            startBossDeath();
+        }
     } else if (gameState === "boss-lunch") {
         boss.lunchLine++;
         if (boss.lunchLine === 2) {
@@ -554,7 +564,8 @@ function handleBossChoice() {
         } else if (boss.hp === 0) {
             boss.projectiles = [];
             boss.platforms = [];
-            boss.message = "jag underskattade dig";
+            boss.farewellLine = 0;
+            boss.message = bossFarewellLines[0];
             gameState = "boss-farewell";
         } else {
             startBossDefense();
@@ -1603,7 +1614,7 @@ function drawBoss() {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
-        ctx.fillText("Z: fortsätt", 400, 410);
+        ctx.fillText(boss.farewellLine < bossFarewellLines.length - 1 ? "Z: nästa" : "Z: fortsätt", 400, 410);
     } else if (gameState === "boss-lunch") {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
