@@ -20,10 +20,34 @@ const pie = { x: 410, y: 328, collected: false };
 let hasPie = false;
 let pickupMessageTime = 0;
 const boss = {
-    hp: 100, maxHP: 100, turn: 0, timer: 0, spawnTimer: 0,
-    invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false
+    hp: 100, maxHP: 100, turn: 0, timer: 0,
+    invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false,
+    patternIndex: 0, nextEvent: 0, heartMode: "red", heartVelocityY: 0,
+    jumpRequested: false
 };
 const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
+const bossHeartSize = 10;
+const bossPatterns = [
+    { name: "Datorväggar", mode: "red", duration: 8, events: [
+        { time: 0.7, type: "wall", gapY: 370 },
+        { time: 1.9, type: "wall", gapY: 422 },
+        { time: 3.1, type: "wall", gapY: 370 },
+        { time: 4.3, type: "wall", gapY: 422 }
+    ] },
+    { name: "Hoppa över datorerna", mode: "blue", duration: 8, events: [
+        { time: 0.8, type: "hurdle" },
+        { time: 2.2, type: "hurdle" },
+        { time: 3.6, type: "hurdle" },
+        { time: 5.0, type: "hurdle" }
+    ] },
+    { name: "Laservarning", mode: "red", duration: 8, events: [
+        { time: 0.6, type: "laser", x: 200, y: 332, width: 48, height: 128 },
+        { time: 1.8, type: "laser", x: 376, y: 332, width: 48, height: 128 },
+        { time: 3.0, type: "laser", x: 552, y: 332, width: 48, height: 128 },
+        { time: 4.2, type: "laser", x: 102, y: 332, width: 596, height: 32 },
+        { time: 5.4, type: "laser", x: 102, y: 412, width: 596, height: 32 }
+    ] }
+];
 
 // Ladda character stillframes
 const charaImages = {
@@ -121,6 +145,10 @@ window.addEventListener("keydown", (e) => {
         e.preventDefault();
     }
     if (gameState.startsWith("boss-")) {
+        if (gameState === "boss-defend" && boss.heartMode === "blue" &&
+            e.key === "ArrowUp" && !e.repeat) {
+            boss.jumpRequested = true;
+        }
         if (gameState === "boss-menu" && !e.repeat) {
             if (e.key === "ArrowLeft") selectedButton = Math.max(0, selectedButton - 1);
             if (e.key === "ArrowRight") selectedButton = Math.min(3, selectedButton + 1);
@@ -163,6 +191,10 @@ window.addEventListener("keydown", (e) => {
 
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
+    if (gameState === "boss-defend" && boss.heartMode === "blue" &&
+        e.key === "ArrowUp" && boss.heartVelocityY < -120) {
+        boss.heartVelocityY = -120;
+    }
     if (e.key.toLowerCase() === "z") {
         zPressed = false;
     }
@@ -171,6 +203,7 @@ window.addEventListener("keyup", (e) => {
 window.addEventListener("blur", () => {
     for (const key of Object.keys(keys)) keys[key] = false;
     zPressed = false;
+    boss.jumpRequested = false;
 });
 
 function startBoss(retry = false) {
@@ -185,6 +218,9 @@ function startBoss(retry = false) {
     boss.hp = boss.maxHP;
     boss.turn = 0;
     boss.projectiles = [];
+    boss.heartMode = "red";
+    boss.heartVelocityY = 0;
+    boss.jumpRequested = false;
     boss.message = "Sikael: Du får inte ta mitt kaffe";
     selectedButton = 0;
     gameState = "boss-intro";
@@ -228,12 +264,94 @@ function handleBossChoice() {
 function startBossDefense() {
     boss.turn++;
     boss.timer = 0;
-    boss.spawnTimer = 0;
+    boss.patternIndex = (boss.turn - 1) % bossPatterns.length;
+    boss.nextEvent = 0;
+    const pattern = bossPatterns[boss.patternIndex];
+    boss.heartMode = pattern.mode;
+    boss.heartVelocityY = 0;
+    boss.jumpRequested = false;
     boss.invincibleTime = 0;
     boss.projectiles = [];
     heartX = 400;
-    heartY = (bossArena.top + bossArena.bottom) / 2;
+    heartY = pattern.mode === "blue" ? bossArena.bottom - bossHeartSize
+        : (bossArena.top + bossArena.bottom) / 2;
     gameState = "boss-defend";
+}
+
+function spawnBossHazard(event) {
+    if (event.type === "wall") {
+        const gapTop = Math.max(bossArena.top, event.gapY - 36);
+        const gapBottom = Math.min(bossArena.bottom, event.gapY + 36);
+        if (gapTop > bossArena.top) {
+            boss.projectiles.push({ type: "computer", x: bossArena.right, y: bossArena.top,
+                width: 20, height: gapTop - bossArena.top, vx: -220, age: 0 });
+        }
+        if (gapBottom < bossArena.bottom) {
+            boss.projectiles.push({ type: "computer", x: bossArena.right, y: gapBottom,
+                width: 20, height: bossArena.bottom - gapBottom, vx: -220, age: 0 });
+        }
+    } else if (event.type === "hurdle") {
+        boss.projectiles.push({ type: "computer", x: bossArena.right, y: bossArena.bottom - 26,
+            width: 20, height: 26, vx: -240, age: 0 });
+    } else if (event.type === "laser") {
+        boss.projectiles.push({ type: "laser", x: event.x, y: event.y,
+            width: event.width, height: event.height, vx: 0, age: 0 });
+    }
+}
+
+function updateBossDefense(seconds) {
+    const pattern = bossPatterns[boss.patternIndex];
+    let horizontal = Number(Boolean(keys.ArrowRight)) - Number(Boolean(keys.ArrowLeft));
+    let vertical = Number(Boolean(keys.ArrowDown)) - Number(Boolean(keys.ArrowUp));
+    if (boss.heartMode === "blue") {
+        const grounded = heartY >= bossArena.bottom - bossHeartSize;
+        if (boss.jumpRequested && grounded) boss.heartVelocityY = -340;
+        boss.jumpRequested = false;
+        boss.heartVelocityY += 900 * seconds;
+        heartY += boss.heartVelocityY * seconds;
+        if (heartY >= bossArena.bottom - bossHeartSize) {
+            heartY = bossArena.bottom - bossHeartSize;
+            boss.heartVelocityY = 0;
+        }
+    } else {
+        const length = Math.hypot(horizontal, vertical);
+        if (length > 0) {
+            horizontal /= length;
+            vertical /= length;
+        }
+        heartY += vertical * 240 * seconds;
+    }
+    heartX += horizontal * 240 * seconds;
+    heartX = Math.max(bossArena.left + bossHeartSize, Math.min(bossArena.right - bossHeartSize, heartX));
+    heartY = Math.max(bossArena.top + bossHeartSize, Math.min(bossArena.bottom - bossHeartSize, heartY));
+    boss.timer += seconds;
+    boss.invincibleTime = Math.max(0, boss.invincibleTime - seconds);
+    while (boss.nextEvent < pattern.events.length && pattern.events[boss.nextEvent].time <= boss.timer) {
+        spawnBossHazard(pattern.events[boss.nextEvent]);
+        boss.nextEvent++;
+    }
+    for (const hazard of boss.projectiles) {
+        hazard.x += hazard.vx * seconds;
+        hazard.age += seconds;
+        const dangerous = hazard.type !== "laser" || (hazard.age >= 1 && hazard.age < 1.45);
+        if (dangerous && boss.invincibleTime === 0 &&
+            heartX + bossHeartSize > hazard.x && heartX - bossHeartSize < hazard.x + hazard.width &&
+            heartY + bossHeartSize > hazard.y && heartY - bossHeartSize < hazard.y + hazard.height) {
+            playerHP = Math.max(0, playerHP - 10);
+            boss.invincibleTime = 1;
+            if (playerHP === 0) {
+                gameState = "boss-lost";
+                return;
+            }
+        }
+    }
+    boss.projectiles = boss.projectiles.filter(h => h.type === "laser" ? h.age < 1.45
+        : h.x + h.width >= bossArena.left);
+    if (boss.timer >= pattern.duration) {
+        boss.projectiles = [];
+        boss.message = "Din tur! Fight attackerar. Item använder pajen.";
+        gameState = "boss-menu";
+    }
 }
 
 function updateBoss(seconds) {
@@ -247,46 +365,11 @@ function updateBoss(seconds) {
         return;
     }
     if (gameState !== "boss-defend") return;
-    const speed = 260 * seconds;
-    if (keys.ArrowLeft) heartX -= speed;
-    if (keys.ArrowRight) heartX += speed;
-    if (keys.ArrowUp) heartY -= speed;
-    if (keys.ArrowDown) heartY += speed;
-    heartX = Math.max(bossArena.left + heartSize, Math.min(bossArena.right - heartSize, heartX));
-    heartY = Math.max(bossArena.top + heartSize, Math.min(bossArena.bottom - heartSize, heartY));
-    boss.timer += seconds;
-    boss.invincibleTime = Math.max(0, boss.invincibleTime - seconds);
-    boss.spawnTimer -= seconds;
-    if (boss.spawnTimer <= 0) {
-        boss.spawnTimer += 0.45;
-        const x = 130 + Math.random() * 540;
-        const y = bossArena.top - 20;
-        const distance = Math.hypot(heartX - x, heartY - y);
-        const projectileSpeed = 140 + Math.min(boss.turn, 6) * 12;
-        boss.projectiles.push({
-            x, y, vx: (heartX - x) / distance * projectileSpeed,
-            vy: (heartY - y) / distance * projectileSpeed
-        });
-    }
-    for (const projectile of boss.projectiles) {
-        projectile.x += projectile.vx * seconds;
-        projectile.y += projectile.vy * seconds;
-        if (boss.invincibleTime === 0 &&
-            Math.abs(projectile.x - heartX) < heartSize + 12 &&
-            Math.abs(projectile.y - heartY) < heartSize + 10) {
-            playerHP = Math.max(0, playerHP - 10);
-            boss.invincibleTime = 1;
-            if (playerHP === 0) {
-                gameState = "boss-lost";
-                return;
-            }
-        }
-    }
-    boss.projectiles = boss.projectiles.filter(p => p.x > 70 && p.x < 730 && p.y < 580);
-    if (boss.timer >= 6) {
-        boss.projectiles = [];
-        boss.message = "Din tur! Fight attackerar. Item använder pajen.";
-        gameState = "boss-menu";
+    // Små fysiksteg hindrar snabba hinder från att hoppa över hjärtat vid låg bildfrekvens.
+    while (seconds > 0 && gameState === "boss-defend") {
+        const step = Math.min(seconds, 1 / 120);
+        updateBossDefense(step);
+        seconds -= step;
     }
 }
 
@@ -762,6 +845,42 @@ function drawBossMenu() {
     ctx.restore();
 }
 
+function drawBossHazard(hazard) {
+    ctx.save();
+    if (hazard.type === "laser") {
+        if (hazard.age < 1) {
+            ctx.fillStyle = "rgba(255, 140, 32, 0.18)";
+            ctx.fillRect(hazard.x, hazard.y, hazard.width, hazard.height);
+            ctx.strokeStyle = "#ff8c20";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(hazard.x + 1, hazard.y + 1, hazard.width - 2, hazard.height - 2);
+            ctx.fillStyle = "#ff8c20";
+            ctx.font = "bold 20px monospace";
+            ctx.fillText("!", hazard.x + hazard.width / 2, hazard.y + hazard.height / 2 + 7);
+        } else {
+            ctx.fillStyle = "#70eaff";
+            ctx.fillRect(hazard.x, hazard.y, hazard.width, hazard.height);
+            ctx.fillStyle = "#fff";
+            if (hazard.height > hazard.width) {
+                ctx.fillRect(hazard.x + 6, hazard.y, hazard.width - 12, hazard.height);
+            } else {
+                ctx.fillRect(hazard.x, hazard.y + 6, hazard.width, hazard.height - 12);
+            }
+        }
+    } else {
+        ctx.fillStyle = "#aaa";
+        ctx.fillRect(hazard.x, hazard.y, hazard.width, hazard.height);
+        ctx.beginPath();
+        ctx.rect(hazard.x, hazard.y, hazard.width, hazard.height);
+        ctx.clip();
+        for (let y = hazard.y + 10; y < hazard.y + hazard.height + 10; y += 20) {
+            drawComputer(hazard.x + hazard.width / 2, y, 18);
+        }
+    }
+    ctx.restore();
+}
+
 function drawBoss() {
     ctx.save();
     ctx.fillStyle = "#000";
@@ -798,13 +917,19 @@ function drawBoss() {
         ctx.beginPath();
         ctx.rect(bossArena.left, bossArena.top, bossArena.right - bossArena.left, bossArena.bottom - bossArena.top);
         ctx.clip();
-        for (const projectile of boss.projectiles) drawComputer(projectile.x, projectile.y, 24);
+        for (const hazard of boss.projectiles) drawBossHazard(hazard);
         if (boss.invincibleTime === 0 || Math.floor(boss.invincibleTime * 10) % 2 === 0) {
-            drawCharacter(heartX, heartY, heartSize * 2, heartImage);
+            ctx.save();
+            if (boss.heartMode === "blue") ctx.filter = "hue-rotate(240deg)";
+            drawCharacter(heartX, heartY, bossHeartSize * 2, heartImage);
+            ctx.restore();
         }
         ctx.restore();
         ctx.fillStyle = "#fff";
-        ctx.fillText("Pilar: undvik datorerna! " + Math.max(0, Math.ceil(6 - boss.timer)), 400, 585);
+        const pattern = bossPatterns[boss.patternIndex];
+        const controls = boss.heartMode === "blue" ? "← →: gå  ↑: hoppa" : "Pilar: flytta hjärtat";
+        ctx.fillText(pattern.name + " – " + controls + " – " +
+            Math.max(0, Math.ceil(pattern.duration - boss.timer)), 400, 585);
     } else {
         ctx.fillStyle = "#fff";
         ctx.font = "32px Arial";
