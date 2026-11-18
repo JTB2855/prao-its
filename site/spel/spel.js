@@ -31,6 +31,11 @@ const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
 const bossDamage = { amount: 1, cooldown: 0.025 };
+const bossDeath = {
+    timer: 0, duration: 3.2, particles: [],
+    portrait: document.createElement("canvas"),
+    dust: document.createElement("canvas")
+};
 const battleButtons = ["SLÅSS", "AGERA", "FÖREMÅL", "SKONA"];
 const bossGravity = {
     down: { x: 0, y: 1, jumpKey: "ArrowUp" },
@@ -436,6 +441,8 @@ function startBoss(retry = false) {
     boss.gravityDirection = "down";
     boss.platforms = [];
     boss.jumpRequested = false;
+    bossDeath.timer = 0;
+    bossDeath.particles = [];
     boss.message = "Sikael: Du får inte ta mitt kaffe";
     selectedButton = 0;
     gameState = "boss-intro";
@@ -487,9 +494,46 @@ function handleBossChoice() {
             boss.message = bossLunchLines[0];
             gameState = "boss-lunch";
         } else if (boss.hp === 0) {
-            gameState = "boss-won";
+            startBossDeath();
         } else {
             startBossDefense();
+        }
+    }
+}
+
+function startBossDeath() {
+    gameState = "boss-dying";
+    boss.projectiles = [];
+    boss.platforms = [];
+    boss.message = "";
+    bossDeath.timer = 0;
+    bossDeath.particles = [];
+    for (const layer of [bossDeath.portrait, bossDeath.dust]) {
+        layer.width = 190;
+        layer.height = 190;
+        const layerContext = layer.getContext("2d");
+        layerContext.imageSmoothingEnabled = false;
+        if (sikaelImage.complete && sikaelImage.naturalWidth > 0) {
+            const scale = 190 / Math.max(sikaelImage.naturalWidth, sikaelImage.naturalHeight);
+            const width = sikaelImage.naturalWidth * scale;
+            const height = sikaelImage.naturalHeight * scale;
+            layerContext.drawImage(sikaelImage, (190 - width) / 2, (190 - height) / 2, width, height);
+        }
+        if (layer === bossDeath.dust) {
+            // Behåll bildens genomskinliga delar när stoftet färgas vitt.
+            layerContext.globalCompositeOperation = "source-in";
+            layerContext.fillStyle = "#fff";
+            layerContext.fillRect(0, 0, 190, 190);
+        }
+    }
+    for (let y = 0; y < 190; y += 5) {
+        for (let x = 0; x < 190; x += 5) {
+            bossDeath.particles.push({
+                x, y, start: 0.15 + y / 190 + Math.random() * 0.2,
+                vx: (Math.random() - 0.5) * 70,
+                vy: -25 - Math.random() * 50,
+                lifetime: 0.8 + Math.random() * 0.4
+            });
         }
     }
 }
@@ -754,6 +798,11 @@ function updateBossDefense(seconds) {
 }
 
 function updateBoss(seconds) {
+    if (gameState === "boss-dying") {
+        bossDeath.timer = Math.min(bossDeath.duration, bossDeath.timer + seconds);
+        if (bossDeath.timer >= bossDeath.duration) gameState = "boss-won";
+        return;
+    }
     if (gameState === "boss-slider") {
         attackBarProgress += seconds * 65;
         if (attackBarProgress >= 100) {
@@ -1373,6 +1422,15 @@ function drawBoss() {
     ctx.font = "16px monospace";
     ctx.fillText("Pajer: " + pieCount, 30, 70);
     ctx.textAlign = "center";
+    if (gameState === "boss-dying" || gameState === "boss-won") {
+        drawBossDeath();
+        if (gameState === "boss-won") {
+            ctx.font = "20px Arial";
+            ctx.fillText("Z: försök igen med samma hälsa och pajer som vid starten", 400, 450);
+        }
+        ctx.restore();
+        return;
+    }
     drawCharacter(400, 145, 190, sikaelImage);
     ctx.fillStyle = "#fff";
     ctx.fillText("SIKAEL  HÄLSA " + boss.hp + "/" + boss.maxHP, 400, 265);
@@ -1434,9 +1492,24 @@ function drawBoss() {
     } else {
         ctx.fillStyle = "#fff";
         ctx.font = "32px Arial";
-        ctx.fillText(gameState === "boss-won" ? "Du besegrade Sikael!" : "Du förlorade!", 400, 400);
+        ctx.fillText("Du förlorade!", 400, 400);
         ctx.font = "20px Arial";
         ctx.fillText("Z: försök igen med samma hälsa och pajer som vid starten", 400, 450);
+    }
+    ctx.restore();
+}
+
+function drawBossDeath() {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    for (const particle of bossDeath.particles) {
+        const age = bossDeath.timer - particle.start;
+        if (age >= particle.lifetime) continue;
+        ctx.globalAlpha = age < 0 ? 1 : 1 - age / particle.lifetime;
+        const x = 305 + particle.x + (age < 0 ? 0 : particle.vx * age);
+        const y = 50 + particle.y + (age < 0 ? 0 : particle.vy * age);
+        ctx.drawImage(age < 0 ? bossDeath.portrait : bossDeath.dust,
+            particle.x, particle.y, 5, 5, x, y, 5, 5);
     }
     ctx.restore();
 }
