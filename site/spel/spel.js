@@ -17,11 +17,11 @@ const pieImage = new Image();
 pieImage.onerror = () => console.error("Kunde inte ladda pajbilden.");
 pieImage.src = "images/pumpkin-pie.png";
 const pie = { x: 410, y: 328, collected: false };
-let hasPie = false;
+let pieCount = 0;
 let pickupMessageTime = 0;
 const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
-    invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false,
+    invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
     patternIndex: 0, nextEvent: 0, heartMode: "red", gravitySpeed: 0,
     jumpRequested: false, lunchEaten: false, lunchLine: 0,
     determination: false, phaseTurn: 0, gravityDirection: "down", platforms: []
@@ -407,10 +407,10 @@ window.addEventListener("blur", () => {
 function startBoss(retry = false) {
     if (retry) {
         playerHP = boss.entryHP;
-        hasPie = boss.entryPie;
+        pieCount = boss.entryPieCount;
     } else {
         boss.entryHP = playerHP;
-        boss.entryPie = hasPie;
+        boss.entryPieCount = pieCount;
     }
     currentRoom = 9;
     boss.maxHP = 100;
@@ -453,9 +453,9 @@ function handleBossChoice() {
             attackBarProgress = 0;
             gameState = "boss-slider";
         } else if (selectedButton === 2) {
-            if (hasPie) {
+            if (pieCount > 0) {
                 playerHP = maxHP;
-                hasPie = false;
+                pieCount--;
                 boss.message = "Pumpkin Pie: HP återställt till 100!";
             } else {
                 boss.message = "Du har ingen paj kvar. Välj ett annat alternativ.";
@@ -890,7 +890,7 @@ function update(seconds = 1 / 60) {
             if (canWalkInKitchen(playerX, newY)) playerY = newY;
             if (!pie.collected && Math.abs(playerX - pie.x) < 45 && playerY - playerSize / 2 <= 370) {
                 pie.collected = true;
-                hasPie = true;
+                pieCount += 3;
                 pickupMessageTime = 4;
             }
             if (playerY - playerSize / 2 > canvas.height) {
@@ -1180,7 +1180,7 @@ function drawKitchen() {
         ctx.font = "22px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("Pumpkin Pie Added To Inventory", 400, 58);
+        ctx.fillText("3 Pumpkin Pies Added To Inventory", 400, 58);
     }
     ctx.restore();
 }
@@ -1335,7 +1335,7 @@ function drawBoss() {
     ctx.fillStyle = "#fff";
     drawBossStatus(492);
     ctx.font = "16px monospace";
-    ctx.fillText("Paj: " + (hasPie ? "1" : "0"), 30, 70);
+    ctx.fillText("Pajer: " + pieCount, 30, 70);
     ctx.textAlign = "center";
     drawCharacter(400, 145, 190, sikaelImage);
     ctx.fillStyle = "#fff";

@@ -27,6 +27,7 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-18 – gjord: "man kanske kan få 2 pajer? eller 3?" – "det är perfekt svårt men det garanterar inte att alla kan klara det". Eleven valde och godkände 3 pajer vid upplockning i köket. Meddelandet är nu "3 Pumpkin Pies Added To Inventory". Item förbrukar en paj och återställer till 100 HP; striden visar antal kvar. Nytt försök återställer exakt antalet vid inträdet till bossen. Attackerna är oförändrade. Upplockning en gång, tre läkningar, tomt förråd, visning och omstart är testade.
 - 2026-11-17 – gjord: Lägg bifogade pajbilden på köksbänken. Vid upplockning visas "Pumpkin Pie Added To Inventory". Gå fram till bänken för att plocka upp den en gång.
 - 2026-11-17 – gjord: Dörren åt höger i vardagsrummet leder direkt till Sikaels bossfight. "Det är det viktigaste så vi måste fixa det innan jag får slut på tid". Eleven godkände att öppna denna andra utgång.
 - 2026-11-17 – gjord: Godkänd första bossversion: Sikael är en datorfigur med 100 HP. Fight och Z använder en slider (5–25 skada), därefter undviks datorattacker i sex sekunder. Träff ger 10 skada med en sekunds skydd. Item använder pajen en gång och återställer till 100 HP. Vinst/förlust visas; Z startar om bossen med samma HP och paj som vid inträdet.
