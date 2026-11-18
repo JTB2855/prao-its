@@ -22,15 +22,21 @@ let pickupMessageTime = 0;
 const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false,
-    patternIndex: 0, nextEvent: 0, heartMode: "red", heartVelocityY: 0,
+    patternIndex: 0, nextEvent: 0, heartMode: "red", gravitySpeed: 0,
     jumpRequested: false, lunchEaten: false, lunchLine: 0,
-    determination: false, phaseTurn: 0
+    determination: false, phaseTurn: 0, gravityDirection: "down", platforms: []
 };
 const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
 const bossDamage = { amount: 1, cooldown: 0.025 };
+const bossGravity = {
+    down: { x: 0, y: 1, jumpKey: "ArrowUp" },
+    up: { x: 0, y: -1, jumpKey: "ArrowDown" },
+    left: { x: -1, y: 0, jumpKey: "ArrowRight" },
+    right: { x: 1, y: 0, jumpKey: "ArrowLeft" }
+};
 const bossLunchLines = [
     "You were stronger than i thought",
     "But i wont die",
@@ -152,6 +158,87 @@ const bossHardPatterns = [
         { time: 5.4, type: "cannon", side: "top", warning: 0.45 },
         { time: 6.25, type: "cannon", side: "left", warning: 0.45 },
         { time: 6.25, type: "cannon", side: "top", warning: 0.45 }
+    ] },
+    { name: "Plattformar över ben", mode: "blue", width: 360, duration: 9,
+        startX: 285, platforms: [
+            { x: 250, y: 425, width: 80, vx: 0 },
+            { x: 365, y: 395, width: 70, vx: 0 },
+            { x: 470, y: 420, width: 80, vx: 0 }
+        ], events: [
+        { time: 0, type: "bone-bed", height: 18 },
+        { time: 0.8, type: "cannon", side: "left", warning: 0.55 },
+        { time: 2.0, type: "cannon", side: "right", warning: 0.55 },
+        { time: 3.2, type: "cannon", side: "top", warning: 0.55 },
+        { time: 4.4, type: "cannon", side: "left", warning: 0.55 },
+        { time: 5.6, type: "cannon", side: "right", warning: 0.55 },
+        { time: 6.8, type: "cannon", side: "top", warning: 0.55 }
+    ] },
+    { name: "Rörliga plattformar", mode: "blue", width: 360, duration: 9,
+        startX: 290, platforms: [
+            { x: 250, y: 420, width: 84, vx: 65 },
+            { x: 400, y: 385, width: 90, vx: -55 },
+            { x: 480, y: 420, width: 84, vx: -65 }
+        ], events: [
+        { time: 0, type: "bone-bed", height: 18 },
+        { time: 0.8, type: "column", x: 350, speed: 180, height: 40 },
+        { time: 2.0, type: "column", x: 470, speed: -180, height: 40 },
+        { time: 3.2, type: "column", x: 300, speed: 180, height: 40 },
+        { time: 4.4, type: "column", x: 420, speed: -180, height: 40 },
+        { time: 5.6, type: "column", x: 520, speed: 180, height: 40 },
+        { time: 6.8, type: "column", x: 350, speed: -180, height: 40 }
+    ] },
+    { name: "Plattformar och laser", mode: "blue", width: 360, duration: 9,
+        startX: 280, platforms: [
+            { x: 240, y: 420, width: 90, vx: 45 },
+            { x: 355, y: 395, width: 90, vx: -40 },
+            { x: 470, y: 420, width: 90, vx: -45 }
+        ], events: [
+        { time: 0, type: "bone-bed", height: 18 },
+        { time: 0.6, type: "cannon", side: "left", warning: 0.5 },
+        { time: 1.6, type: "cannon", side: "right", warning: 0.5 },
+        { time: 2.6, type: "cannon", side: "top", warning: 0.5 },
+        { time: 3.6, type: "cannon", side: "left", warning: 0.5 },
+        { time: 4.6, type: "cannon", side: "right", warning: 0.5 },
+        { time: 5.6, type: "cannon", side: "top", warning: 0.5 },
+        { time: 6.6, type: "cannon", side: "left", warning: 0.5 },
+        { time: 6.6, type: "cannon", side: "right", warning: 0.5 }
+    ] },
+    { name: "Väggkast", mode: "blue", width: 300, top: 300, duration: 9, events: [
+        { time: 0.3, type: "slam", direction: "down" },
+        { time: 1.7, type: "slam", direction: "left" },
+        { time: 3.1, type: "slam", direction: "up" },
+        { time: 4.5, type: "slam", direction: "right" },
+        { time: 5.9, type: "slam", direction: "down" },
+        { time: 7.3, type: "slam", direction: "left" }
+    ] },
+    { name: "Ben uppifrån och nerifrån", mode: "red", width: 360, duration: 9, events: [
+        { time: 0.4, type: "vertical-wall", gapX: 320, speed: 240 },
+        { time: 1.05, type: "vertical-wall", gapX: 400, speed: -240 },
+        { time: 1.7, type: "vertical-wall", gapX: 480, speed: 240 },
+        { time: 2.35, type: "vertical-wall", gapX: 400, speed: -240 },
+        { time: 3.0, type: "vertical-wall", gapX: 320, speed: 240 },
+        { time: 3.65, type: "vertical-wall", gapX: 400, speed: -240 },
+        { time: 4.3, type: "vertical-wall", gapX: 480, speed: 240 },
+        { time: 4.95, type: "vertical-wall", gapX: 400, speed: -240 },
+        { time: 5.6, type: "vertical-wall", gapX: 320, speed: 240 },
+        { time: 6.25, type: "vertical-wall", gapX: 400, speed: -240 },
+        { time: 6.9, type: "vertical-wall", gapX: 480, speed: 240 },
+        { time: 7.55, type: "vertical-wall", gapX: 400, speed: -240 }
+    ] },
+    { name: "Laserkarusellen", mode: "red", width: 300, top: 300, duration: 9, events: [
+        { time: 0.3, type: "ring-cannon", angle: 0 },
+        { time: 0.9, type: "ring-cannon", angle: 0.4 },
+        { time: 1.5, type: "ring-cannon", angle: 0.8 },
+        { time: 2.1, type: "ring-cannon", angle: 1.2 },
+        { time: 2.7, type: "ring-cannon", angle: 1.6 },
+        { time: 3.3, type: "ring-cannon", angle: 2.0 },
+        { time: 3.9, type: "ring-cannon", angle: 2.4 },
+        { time: 4.5, type: "ring-cannon", angle: 2.8 },
+        { time: 5.1, type: "ring-cannon", angle: 3.2 },
+        { time: 5.7, type: "ring-cannon", angle: 3.6 },
+        { time: 6.3, type: "ring-cannon", angle: 4.0 },
+        { time: 6.9, type: "ring-cannon", angle: 4.4 },
+        { time: 7.5, type: "ring-cannon", angle: 4.8 }
     ] }
 ];
 
@@ -256,7 +343,7 @@ window.addEventListener("keydown", (e) => {
     }
     if (gameState.startsWith("boss-")) {
         if (gameState === "boss-defend" && boss.heartMode === "blue" &&
-            e.key === "ArrowUp" && !e.repeat) {
+            e.key === bossGravity[boss.gravityDirection].jumpKey && !e.repeat) {
             boss.jumpRequested = true;
         }
         if (gameState === "boss-menu" && !e.repeat) {
@@ -303,8 +390,8 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
     if (gameState === "boss-defend" && boss.heartMode === "blue" &&
-        e.key === "ArrowUp" && boss.heartVelocityY < -bossPhysics.jumpCut) {
-        boss.heartVelocityY = -bossPhysics.jumpCut;
+        e.key === bossGravity[boss.gravityDirection].jumpKey && boss.gravitySpeed < -bossPhysics.jumpCut) {
+        boss.gravitySpeed = -bossPhysics.jumpCut;
     }
     if (e.key.toLowerCase() === "z") {
         zPressed = false;
@@ -335,7 +422,9 @@ function startBoss(retry = false) {
     boss.turn = 0;
     boss.projectiles = [];
     boss.heartMode = "red";
-    boss.heartVelocityY = 0;
+    boss.gravitySpeed = 0;
+    boss.gravityDirection = "down";
+    boss.platforms = [];
     boss.jumpRequested = false;
     boss.message = "Sikael: Du får inte ta mitt kaffe";
     selectedButton = 0;
@@ -413,12 +502,16 @@ function startBossDefense() {
     bossArena.right = 400 + pattern.width / 2;
     bossArena.top = pattern.top ?? 332;
     boss.heartMode = pattern.mode;
-    boss.heartVelocityY = pattern.mode === "blue" ? 600 : 0;
+    boss.gravityDirection = "down";
+    boss.gravitySpeed = pattern.mode === "blue" ? 600 : 0;
     boss.jumpRequested = false;
     boss.invincibleTime = 0;
     boss.projectiles = [];
-    heartX = 400;
-    heartY = (bossArena.top + bossArena.bottom) / 2;
+    boss.platforms = (pattern.platforms ?? []).map(platform => ({ ...platform }));
+    heartX = pattern.startX ?? 400;
+    heartY = pattern.platforms ? pattern.platforms[0].y - bossHeartSize
+        : (bossArena.top + bossArena.bottom) / 2;
+    if (pattern.platforms) boss.gravitySpeed = 0;
     gameState = "boss-defend";
 }
 
@@ -427,8 +520,36 @@ function spawnBossHazard(event) {
     const boneX = speed > 0 ? bossArena.left - 14 : bossArena.right;
     if (event.type === "mode") {
         boss.heartMode = event.mode;
-        boss.heartVelocityY = 0;
+        boss.gravitySpeed = 0;
         boss.jumpRequested = false;
+    } else if (event.type === "bone-bed") {
+        boss.projectiles.push({ type: "bone-bed", x: bossArena.left,
+            y: bossArena.bottom - event.height, width: bossArena.right - bossArena.left,
+            height: event.height, vx: 0, age: 0 });
+    } else if (event.type === "slam") {
+        boss.gravityDirection = event.direction;
+        boss.gravitySpeed = 650;
+        boss.jumpRequested = false;
+        boss.projectiles.push({ type: "stab", direction: event.direction,
+            x: bossArena.left, y: bossArena.bottom, width: 0, height: 0,
+            vx: 0, age: 0, warning: 0.6, lifetime: 1.15, maxHeight: 34 });
+    } else if (event.type === "vertical-wall") {
+        const y = speed > 0 ? bossArena.top - 14 : bossArena.bottom;
+        for (const [left, right] of [[bossArena.left, event.gapX - 40],
+            [event.gapX + 40, bossArena.right]]) {
+            boss.projectiles.push({ type: "bone", x: left, y, width: right - left,
+                height: 14, horizontal: true, vx: 0, vy: speed, age: 0 });
+        }
+    } else if (event.type === "column") {
+        boss.projectiles.push({ type: "bone", x: event.x, y: speed > 0
+            ? bossArena.top - event.height : bossArena.bottom,
+            width: 14, height: event.height, vx: 0, vy: speed, age: 0 });
+    } else if (event.type === "ring-cannon") {
+        for (const angle of [event.angle, event.angle + Math.PI]) {
+            spawnBossHazard({ type: "cannon", x: 400 + Math.cos(angle) * 195,
+                y: 380 + Math.sin(angle) * 60, targetX: 400, targetY: 380,
+                warning: 0.45, beamWidth: 22 });
+        }
     } else if (event.type === "floor") {
         boss.projectiles.push({ type: "floor", x: bossArena.left, y: bossArena.bottom,
             width: bossArena.right - bossArena.left, height: 0, maxHeight: event.height,
@@ -496,10 +617,61 @@ function bossHazardHits(hazard, moving) {
         const distance = Math.abs(dx * Math.sin(hazard.angle) - dy * Math.cos(hazard.angle));
         return forward >= 0 && distance < hazard.beamWidth / 2 + radius;
     }
-    if (hazard.type === "floor" && hazard.height <= 0) return false;
+    if ((hazard.type === "floor" || hazard.type === "stab") &&
+        (hazard.height <= 0 || hazard.width <= 0)) return false;
     if (hazard.type === "blue-bone" && !moving) return false;
     return heartX + radius > hazard.x && heartX - radius < hazard.x + hazard.width &&
         heartY + radius > hazard.y && heartY - radius < hazard.y + hazard.height;
+}
+
+function updateBossPlatforms(seconds) {
+    const support = boss.gravityDirection === "down" && boss.gravitySpeed >= 0
+        ? boss.platforms.find(platform => Math.abs(heartY + bossHeartSize - platform.y) < 0.1 &&
+            heartX + bossHeartSize > platform.x && heartX - bossHeartSize < platform.x + platform.width)
+        : null;
+    for (const platform of boss.platforms) {
+        const previousX = platform.x;
+        platform.x += platform.vx * seconds;
+        if (platform.x < bossArena.left || platform.x + platform.width > bossArena.right) {
+            platform.x = Math.max(bossArena.left, Math.min(bossArena.right - platform.width, platform.x));
+            platform.vx *= -1;
+        }
+        if (platform === support) heartX += platform.x - previousX;
+    }
+}
+
+function moveBlueBossHeart(horizontal, vertical, seconds) {
+    const gravity = bossGravity[boss.gravityDirection];
+    let grounded = gravity.x < 0 ? heartX <= bossArena.left + bossHeartSize
+        : gravity.x > 0 ? heartX >= bossArena.right - bossHeartSize
+        : gravity.y < 0 ? heartY <= bossArena.top + bossHeartSize
+        : heartY >= bossArena.bottom - bossHeartSize;
+    if (boss.gravityDirection === "down") {
+        grounded ||= boss.platforms.some(platform =>
+            Math.abs(heartY + bossHeartSize - platform.y) < 0.1 &&
+            heartX + bossHeartSize > platform.x && heartX - bossHeartSize < platform.x + platform.width);
+    }
+    if ((boss.jumpRequested || keys[gravity.jumpKey]) && grounded) boss.gravitySpeed = -bossPhysics.jump;
+    boss.jumpRequested = false;
+    boss.gravitySpeed += bossPhysics.gravity * seconds;
+    const previousBottom = heartY + bossHeartSize;
+    heartX += (gravity.x * boss.gravitySpeed + (gravity.x === 0 ? horizontal * bossPhysics.speed : 0)) * seconds;
+    heartY += (gravity.y * boss.gravitySpeed + (gravity.y === 0 ? vertical * bossPhysics.speed : 0)) * seconds;
+    if (boss.gravityDirection === "down" && boss.gravitySpeed >= 0) {
+        // Bara landning ovanifrån: hjärtat kan hoppa upp genom plattformarna.
+        const landing = boss.platforms.filter(platform =>
+            previousBottom <= platform.y + 0.1 && heartY + bossHeartSize >= platform.y &&
+            heartX + bossHeartSize > platform.x && heartX - bossHeartSize < platform.x + platform.width)
+            .sort((a, b) => a.y - b.y)[0];
+        if (landing) {
+            heartY = landing.y - bossHeartSize;
+            boss.gravitySpeed = 0;
+        }
+    }
+    if ((gravity.x !== 0 && (heartX <= bossArena.left + bossHeartSize ||
+        heartX >= bossArena.right - bossHeartSize)) ||
+        (gravity.y !== 0 && (heartY <= bossArena.top + bossHeartSize ||
+        heartY >= bossArena.bottom - bossHeartSize))) boss.gravitySpeed = 0;
 }
 
 function updateBossDefense(seconds) {
@@ -508,16 +680,9 @@ function updateBossDefense(seconds) {
     const previousY = heartY;
     let horizontal = Number(Boolean(keys.ArrowRight)) - Number(Boolean(keys.ArrowLeft));
     let vertical = Number(Boolean(keys.ArrowDown)) - Number(Boolean(keys.ArrowUp));
+    updateBossPlatforms(seconds);
     if (boss.heartMode === "blue") {
-        const grounded = heartY >= bossArena.bottom - bossHeartSize;
-        if ((boss.jumpRequested || keys.ArrowUp) && grounded) boss.heartVelocityY = -bossPhysics.jump;
-        boss.jumpRequested = false;
-        boss.heartVelocityY += bossPhysics.gravity * seconds;
-        heartY += boss.heartVelocityY * seconds;
-        if (heartY >= bossArena.bottom - bossHeartSize) {
-            heartY = bossArena.bottom - bossHeartSize;
-            boss.heartVelocityY = 0;
-        }
+        moveBlueBossHeart(horizontal, vertical, seconds);
     } else {
         const length = Math.hypot(horizontal, vertical);
         if (length > 0) {
@@ -525,11 +690,10 @@ function updateBossDefense(seconds) {
             vertical /= length;
         }
         heartY += vertical * bossPhysics.speed * seconds;
+        heartX += horizontal * bossPhysics.speed * seconds;
     }
-    heartX += horizontal * bossPhysics.speed * seconds;
     heartX = Math.max(bossArena.left + bossHeartSize, Math.min(bossArena.right - bossHeartSize, heartX));
     heartY = Math.max(bossArena.top + bossHeartSize, Math.min(bossArena.bottom - bossHeartSize, heartY));
-    if (heartY === bossArena.top + bossHeartSize && boss.heartVelocityY < 0) boss.heartVelocityY = 0;
     const moving = Math.abs(heartX - previousX) + Math.abs(heartY - previousY) > 0.001;
     boss.timer += seconds;
     boss.invincibleTime = Math.max(0, boss.invincibleTime - seconds);
@@ -539,12 +703,21 @@ function updateBossDefense(seconds) {
     }
     for (const hazard of boss.projectiles) {
         hazard.x += hazard.vx * seconds;
+        hazard.y += (hazard.vy ?? 0) * seconds;
         hazard.age += seconds;
         if (hazard.type === "floor") {
             const rise = (hazard.age - hazard.warning) / 0.1;
             const fall = (hazard.lifetime - hazard.age) / 0.15;
             hazard.height = hazard.maxHeight * Math.max(0, Math.min(1, rise, fall));
             hazard.y = bossArena.bottom - hazard.height;
+        } else if (hazard.type === "stab") {
+            const length = hazard.maxHeight * Math.max(0, Math.min(1,
+                (hazard.age - hazard.warning) / 0.08, (hazard.lifetime - hazard.age) / 0.15));
+            const sideways = hazard.direction === "left" || hazard.direction === "right";
+            hazard.width = sideways ? length : bossArena.right - bossArena.left;
+            hazard.height = sideways ? bossArena.bottom - bossArena.top : length;
+            hazard.x = hazard.direction === "right" ? bossArena.right - length : bossArena.left;
+            hazard.y = hazard.direction === "down" ? bossArena.bottom - length : bossArena.top;
         }
         if (boss.invincibleTime <= 1e-9 && bossHazardHits(hazard, moving)) {
             playerHP = Math.max(0, playerHP - bossDamage.amount);
@@ -557,10 +730,12 @@ function updateBossDefense(seconds) {
     }
     boss.projectiles = boss.projectiles.filter(h => h.type === "cannon"
         ? h.age < h.warning + bossLaser.firing + bossLaser.fade
-        : h.type === "floor" ? h.age < h.lifetime
-        : h.x + h.width >= bossArena.left && h.x <= bossArena.right);
+        : h.type === "floor" || h.type === "stab" ? h.age < h.lifetime
+        : h.x + h.width >= bossArena.left && h.x <= bossArena.right &&
+            h.y + h.height >= bossArena.top && h.y <= bossArena.bottom);
     if (boss.timer >= pattern.duration) {
         boss.projectiles = [];
+        boss.platforms = [];
         boss.message = "Din tur! Fight attackerar. Item använder pajen.";
         gameState = "boss-menu";
     }
@@ -1050,7 +1225,25 @@ function drawBossMenu() {
 
 function drawBossHazard(hazard) {
     ctx.save();
-    if (hazard.type === "floor") {
+    if (hazard.type === "stab") {
+        const sideways = hazard.direction === "left" || hazard.direction === "right";
+        const width = sideways ? hazard.maxHeight : bossArena.right - bossArena.left;
+        const height = sideways ? bossArena.bottom - bossArena.top : hazard.maxHeight;
+        if (hazard.age < hazard.warning) {
+            ctx.fillStyle = Math.floor(hazard.age * 20) % 2 === 0 ? "#f22" : "#7f1616";
+            ctx.fillRect(hazard.direction === "right" ? bossArena.right - width : bossArena.left,
+                hazard.direction === "down" ? bossArena.bottom - height : bossArena.top, width, height);
+        } else if (sideways && hazard.width > 0) {
+            for (let y = hazard.y; y < hazard.y + hazard.height; y += 16) {
+                drawBossHazard({ type: "bone", x: hazard.x, y, width: hazard.width,
+                    height: 14, horizontal: true });
+            }
+        } else if (hazard.height > 0) {
+            for (let x = hazard.x; x < hazard.x + hazard.width; x += 16) {
+                drawBossHazard({ type: "bone", x, y: hazard.y, width: 14, height: hazard.height });
+            }
+        }
+    } else if (hazard.type === "floor" || hazard.type === "bone-bed") {
         if (hazard.age < hazard.warning) {
             ctx.fillStyle = Math.floor(hazard.age * 20) % 2 === 0 ? "#f22" : "#7f1616";
             ctx.fillRect(hazard.x, bossArena.bottom - hazard.maxHeight, hazard.width, hazard.maxHeight);
@@ -1076,10 +1269,17 @@ function drawBossHazard(hazard) {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = hazard.beamWidth;
         ctx.stroke();
+    } else if (hazard.horizontal) {
+        ctx.translate(hazard.x + hazard.width, hazard.y);
+        ctx.rotate(Math.PI / 2);
+        drawBossHazard({ type: hazard.type, x: 0, y: 0, width: hazard.height, height: hazard.width });
     } else {
         ctx.fillStyle = hazard.type === "blue-bone" ? "#42dfff" : "#fff";
         const x = Math.round(hazard.x);
         const y = Math.round(hazard.y);
+        ctx.beginPath();
+        ctx.rect(x, y, hazard.width, hazard.height);
+        ctx.clip();
         ctx.fillRect(x + 4, y + 3, hazard.width - 8, hazard.height - 6);
         for (const endY of [y, y + hazard.height - 6]) {
             ctx.fillRect(x, endY + 1, 6, 5);
@@ -1172,6 +1372,8 @@ function drawBoss() {
         ctx.rect(bossArena.left, bossArena.top, bossArena.right - bossArena.left, bossArena.bottom - bossArena.top);
         ctx.clip();
         for (const hazard of boss.projectiles) drawBossHazard(hazard);
+        ctx.fillStyle = "#35ec72";
+        for (const platform of boss.platforms) ctx.fillRect(platform.x, platform.y, platform.width, 6);
         ctx.save();
         if (boss.invincibleTime > 0) ctx.globalAlpha = 0.55;
         if (boss.heartMode === "blue") ctx.filter = "hue-rotate(240deg)";
@@ -1183,9 +1385,14 @@ function drawBoss() {
         }
         ctx.fillStyle = "#fff";
         const pattern = getBossPattern();
-        const controls = boss.heartMode === "blue" ? "← →: gå  ↑: hoppa" : "Pilar: flytta hjärtat";
-        ctx.fillText(pattern.name + " – " + controls + " – " +
-            Math.max(0, Math.ceil(pattern.duration - boss.timer)), 400, 585);
+        const jumpArrows = { down: "↑", up: "↓", left: "→", right: "←" };
+        const controls = pattern.platforms ? "← →: gå  ↑: hoppa mellan plattformarna"
+            : boss.heartMode === "blue"
+                ? "Pilar: gå  " + jumpArrows[boss.gravityDirection] + ": hoppa bort från väggen"
+                : "Pilar: flytta hjärtat";
+        ctx.fillText(pattern.name + " – " + Math.max(0, Math.ceil(pattern.duration - boss.timer)), 400, 552);
+        ctx.font = "16px Arial";
+        ctx.fillText(controls, 400, 585);
     } else {
         ctx.fillStyle = "#fff";
         ctx.font = "32px Arial";
