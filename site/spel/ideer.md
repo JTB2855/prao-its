@@ -1,5 +1,7 @@
 # Idéer för spelet
 
+- 2026-11-18 – gjord: "översätt allt förutom determination till svenska i spelet" – eleven godkände svenska repliker, menyer, upplockningsmeddelanden och hälsotexter. Knapparna heter SLÅSS, AGERA, FÖREMÅL och SKONA. Figurernas namn och DETERMINATION behålls. Ersätter tidigare önskemål om exakta engelska texter; historiken nedan sparas.
+
 **Status:** Pågår – bygger första versionen. Väntar på pixlerade bilder för karaktärerna.
 
 ## Mapping till Undertale
@@ -27,6 +29,7 @@
 - Status: **Ej gjord**
 
 ### 3. Farmors hus
+- 2026-11-18 – gjord: När man väljer FÖREMÅL öppnas en egen meny med "Pumpapaj × 3" (aktuellt antal) och "Återställer till 100 hälsa". Z äter en paj och återgår till stridsmenyn, X går tillbaka utan att använda någon. Utan pajer visas "Du har inga pajer" och X går tillbaka. Eleven godkände tangentstyrningen. Öppning använder inte längre paj direkt. Antal, tre användningar, tom meny, avbryt, tangentupprepning, återställning vid omstart och svenska texter är testade.
 - 2026-11-18 – gjord: "man kanske kan få 2 pajer? eller 3?" – "det är perfekt svårt men det garanterar inte att alla kan klara det". Eleven valde och godkände 3 pajer vid upplockning i köket. Meddelandet är nu "3 Pumpkin Pies Added To Inventory". Item förbrukar en paj och återställer till 100 HP; striden visar antal kvar. Nytt försök återställer exakt antalet vid inträdet till bossen. Attackerna är oförändrade. Upplockning en gång, tre läkningar, tomt förråd, visning och omstart är testade.
 - 2026-11-17 – gjord: Lägg bifogade pajbilden på köksbänken. Vid upplockning visas "Pumpkin Pie Added To Inventory". Gå fram till bänken för att plocka upp den en gång.
 - 2026-11-17 – gjord: Dörren åt höger i vardagsrummet leder direkt till Sikaels bossfight. "Det är det viktigaste så vi måste fixa det innan jag får slut på tid". Eleven godkände att öppna denna andra utgång.

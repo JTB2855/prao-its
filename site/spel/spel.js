@@ -31,6 +31,7 @@ const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
 const bossDamage = { amount: 1, cooldown: 0.025 };
+const battleButtons = ["SLÅSS", "AGERA", "FÖREMÅL", "SKONA"];
 const bossGravity = {
     down: { x: 0, y: 1, jumpKey: "ArrowUp" },
     up: { x: 0, y: -1, jumpKey: "ArrowDown" },
@@ -38,9 +39,9 @@ const bossGravity = {
     right: { x: 1, y: 0, jumpKey: "ArrowLeft" }
 };
 const bossLunchLines = [
-    "You were stronger than i thought",
-    "But i wont die",
-    "Sikael äter coop-lunch med trocadero! +250 HP",
+    "Du var starkare än jag trodde",
+    "Men jag tänker inte dö",
+    "Sikael äter coop-lunch med trocadero! +250 hälsa",
     "DETERMINATION"
 ];
 const bossPatterns = [
@@ -302,12 +303,12 @@ let gameState = "exploration"; // "exploration", "fight" eller "attack"
 let selectedButton = 0; // 0=Fight, 1=Act, 2=Item, 3=Mercy
 let flowerAttacked = false;
 const flowieLines = [
-    "Howdy! I'm FLOWIE. FLOWIE the FLOWER!",
-    "This is love",
-    "take it",
-    "I said take it",
-    "Here in the underground, it's kill or be killed",
-    "DIE!"
+    "Hejsan! Jag är FLOWIE. Blomman FLOWIE!",
+    "Det här är kärlek",
+    "ta den",
+    "Jag sa ta den",
+    "Här i underjorden dödar man eller blir dödad",
+    "DÖ!"
 ];
 let dialogueIndex = 0;
 let avoidedShots = 0;
@@ -321,7 +322,7 @@ const heartSize = 20;
 
 // Rum-data 
 const rooms = [
-    { name: "Intro - Fallning", description: "Du trillar ner i brunnen...", spawnX: 400, spawnY: 300 },
+    { name: "Inledning – Fallet", description: "Du trillar ner i brunnen...", spawnX: 400, spawnY: 300 },
     { name: "Skogsdunge", description: "Du är här. Flowie syns längre bort", npc: "Flowie", npcX: 600, npcY: 300, spawnX: 300, spawnY: 100 },
     { name: "Farmors hus", description: "Köket ligger uppåt. Högra dörren leder till Sikael.", npc: "Farmor", npcX: 410, npcY: 230, spawnX: 560, spawnY: 330 },
     { name: "Farmors kök", description: "Gå tillbaka genom öppningen nedåt", npc: null, spawnX: 300, spawnY: 550 },
@@ -349,6 +350,11 @@ window.addEventListener("keydown", (e) => {
         if (gameState === "boss-menu" && !e.repeat) {
             if (e.key === "ArrowLeft") selectedButton = Math.max(0, selectedButton - 1);
             if (e.key === "ArrowRight") selectedButton = Math.min(3, selectedButton + 1);
+        }
+        if (gameState === "boss-items" && e.key.toLowerCase() === "x" && !e.repeat) {
+            e.preventDefault();
+            gameState = "boss-menu";
+            boss.message = "Din tur! Välj vad du vill göra.";
         }
         if (e.key.toLowerCase() === "z" && !zPressed && !e.repeat) {
             zPressed = true;
@@ -448,22 +454,24 @@ function handleBossChoice() {
         } else {
             startBossDefense();
         }
+    } else if (gameState === "boss-items") {
+        if (pieCount > 0) {
+            playerHP = maxHP;
+            pieCount--;
+            boss.message = "Du åt en pumpapaj! Hälsan återställd till " + maxHP + ".";
+            gameState = "boss-menu";
+        }
     } else if (gameState === "boss-menu") {
         if (selectedButton === 0) {
             attackBarProgress = 0;
             gameState = "boss-slider";
         } else if (selectedButton === 2) {
-            if (pieCount > 0) {
-                playerHP = maxHP;
-                pieCount--;
-                boss.message = "Pumpkin Pie: HP återställt till 100!";
-            } else {
-                boss.message = "Du har ingen paj kvar. Välj ett annat alternativ.";
-            }
+            gameState = "boss-items";
+            boss.message = "Dina föremål";
         } else {
             boss.message = selectedButton === 1
                 ? "Sikael: Visa hur du undviker mina ben och lasrar!"
-                : "Sikael är inte redo att ge upp. Välj Fight.";
+                : "Sikael är inte redo att ge upp. Välj SLÅSS.";
         }
     } else if (gameState === "boss-slider") {
         const damage = Math.round(5 + 20 * (1 - Math.abs(attackBarProgress - 50) / 50));
@@ -736,7 +744,7 @@ function updateBossDefense(seconds) {
     if (boss.timer >= pattern.duration) {
         boss.projectiles = [];
         boss.platforms = [];
-        boss.message = "Din tur! Fight attackerar. Item använder pajen.";
+        boss.message = "Din tur! SLÅSS attackerar. FÖREMÅL öppnar din väska.";
         gameState = "boss-menu";
     }
 }
@@ -746,7 +754,7 @@ function updateBoss(seconds) {
         attackBarProgress += seconds * 65;
         if (attackBarProgress >= 100) {
             attackBarProgress = 100;
-            boss.message = "Miss! Nu attackerar Sikael.";
+            boss.message = "Du missade! Nu attackerar Sikael.";
             startBossDefense();
         }
         return;
@@ -769,7 +777,7 @@ function handleFightChoice() {
         attackBarProgress = 0;
     } else {
         // Act, Item, Mercy - gör ingenting
-        console.log("Du valde " + ["Fight", "Act", "Item", "Mercy"][selectedButton]);
+        console.log("Du valde " + battleButtons[selectedButton]);
     }
 }
 
@@ -1036,7 +1044,7 @@ function draw() {
     ctx.fillStyle = "#fff";
     ctx.font = "18px Arial";
     ctx.textAlign = "left";
-    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, canvas.height - 20);
+    ctx.fillText("Hälsa: " + playerHP + "/" + maxHP, 20, canvas.height - 20);
 
 }
 
@@ -1046,7 +1054,7 @@ function drawFightMenu() {
     ctx.fillRect(0, 450, canvas.width, 150);
     
     // Knapp-texter
-    const buttons = ["Fight", "Act", "Item", "Mercy"];
+    const buttons = battleButtons;
     const buttonWidth = 140;
     const buttonHeight = 50;
     const startX = 80;
@@ -1154,12 +1162,12 @@ function drawFarmorRoom() {
     drawCharacter(rooms[2].npcX, rooms[2].npcY, farmorRoomSize, farmorImage);
     drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
     ctx.fillStyle = "#000";
-    ctx.fillRect(12, 10, 160, 30);
+    ctx.fillRect(12, 10, 200, 30);
     ctx.fillStyle = "#fff";
     ctx.font = "18px Arial";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 32);
+    ctx.fillText("Hälsa: " + playerHP + "/" + maxHP, 20, 32);
     ctx.restore();
 }
 
@@ -1180,7 +1188,7 @@ function drawKitchen() {
         ctx.font = "22px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("3 Pumpkin Pies Added To Inventory", 400, 58);
+        ctx.fillText("Du fick 3 pumpapajer!", 400, 58);
     }
     ctx.restore();
 }
@@ -1192,7 +1200,7 @@ function drawBossStatus(y) {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText("CHARA", 40, y);
-    ctx.fillText("HP", 245, y);
+    ctx.fillText("HÄLSA", 205, y);
     ctx.fillStyle = "#b82020";
     ctx.fillRect(295, y - 12, 180, 24);
     ctx.fillStyle = "#ffff00";
@@ -1204,9 +1212,9 @@ function drawBossStatus(y) {
 
 function drawBossMenu() {
     ctx.save();
-    const buttons = ["FIGHT", "ACT", "ITEM", "MERCY"];
+    const buttons = battleButtons;
     ctx.lineWidth = 3;
-    ctx.font = "bold 25px monospace";
+    ctx.font = "bold 20px monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     for (let i = 0; i < buttons.length; i++) {
@@ -1220,6 +1228,30 @@ function drawBossMenu() {
             drawCharacter(x + 19, 554, 20, heartImage);
         }
     }
+    ctx.restore();
+}
+
+function drawBossItems() {
+    ctx.save();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(100, 330, 600, 130);
+    ctx.textAlign = "left";
+    ctx.font = "22px monospace";
+    if (pieCount > 0) {
+        drawCharacter(130, 365, 20, heartImage);
+        ctx.fillStyle = "#ffff00";
+        ctx.fillText("Pumpapaj × " + pieCount, 155, 373);
+        ctx.fillStyle = "#fff";
+        ctx.font = "18px Arial";
+        ctx.fillText("Återställer till " + maxHP + " hälsa", 155, 405);
+    } else {
+        ctx.fillStyle = "#fff";
+        ctx.fillText("Du har inga pajer", 130, 385);
+    }
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.fillText(pieCount > 0 ? "Z: ät en paj   X: tillbaka" : "X: tillbaka", 130, 440);
     ctx.restore();
 }
 
@@ -1339,7 +1371,7 @@ function drawBoss() {
     ctx.textAlign = "center";
     drawCharacter(400, 145, 190, sikaelImage);
     ctx.fillStyle = "#fff";
-    ctx.fillText("SIKAEL  HP " + boss.hp + "/" + boss.maxHP, 400, 265);
+    ctx.fillText("SIKAEL  HÄLSA " + boss.hp + "/" + boss.maxHP, 400, 265);
     if (boss.determination) {
         ctx.fillStyle = "#ff3838";
         ctx.fillText("DETERMINATION", 400, 35);
@@ -1360,6 +1392,8 @@ function drawBoss() {
         ctx.fillText(boss.lunchLine < bossLunchLines.length - 1 ? "Z: nästa" : "Z: fortsätt striden", 400, 410);
     } else if (gameState === "boss-menu") {
         drawBossMenu();
+    } else if (gameState === "boss-items") {
+        drawBossItems();
     } else if (gameState === "boss-slider") {
         drawAttackBar();
     } else if (gameState === "boss-defend") {
@@ -1398,7 +1432,7 @@ function drawBoss() {
         ctx.font = "32px Arial";
         ctx.fillText(gameState === "boss-won" ? "Du besegrade Sikael!" : "Du förlorade!", 400, 400);
         ctx.font = "20px Arial";
-        ctx.fillText("Z: försök igen med samma HP och paj som vid starten", 400, 450);
+        ctx.fillText("Z: försök igen med samma hälsa och pajer som vid starten", 400, 450);
     }
     ctx.restore();
 }
@@ -1459,7 +1493,7 @@ function drawAttackScene() {
     ctx.fillStyle = "#fff";
     ctx.font = "16px Arial";
     ctx.textAlign = "left";
-    ctx.fillText("HP: " + playerHP + "/" + maxHP, 20, 30);
+    ctx.fillText("Hälsa: " + playerHP + "/" + maxHP, 20, 30);
 }
 
 let previousTime;
