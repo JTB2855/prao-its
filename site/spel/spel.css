@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    background: #1a1a1a;
+    background: #ff0000;
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
@@ -18,13 +18,13 @@ body {
 
 #spelplan {
     display: block;
-    border: 3px solid #fff;
-    background: #000;
+    border: 3px solid #2fff00;
+    background: #00fff7;
     image-rendering: pixelated;
 }
 
 #ui {
-    color: #fff;
+    color: #e600ff;
     text-align: center;
     font-size: 18px;
 }
@@ -32,4 +32,3 @@ body {
 #room-info {
     margin-bottom: 10px;
 }
-
