@@ -24,13 +24,15 @@ const boss = {
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
     patternIndex: 0, nextEvent: 0, heartMode: "red", gravitySpeed: 0,
     jumpRequested: false, lunchEaten: false, lunchLine: 0,
-    determination: false, phaseTurn: 0, gravityDirection: "down", platforms: []
+    determination: false, phaseTurn: 0, lowHealthAttackUsed: false,
+    gravityDirection: "down", platforms: []
 };
 const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
 const bossDamage = { amount: 1, cooldown: 0.025 };
+const bossSweep = { warning: 0.65, duration: 0.18, blue: "#42dfff", orange: "#ff9d38" };
 const bossDeath = {
     timer: 0, duration: 3.2, particles: [],
     portrait: document.createElement("canvas"),
@@ -124,6 +126,15 @@ const bossPatterns = [
     ] }
 ];
 
+const bossLowHealthPattern = {
+    name: "Gnistregn", mode: "red", width: 320, duration: 6, events: [
+        { time: 0.55, type: "spark-rain", gapX: 350 },
+        { time: 1.80, type: "spark-rain", gapX: 450 },
+        { time: 3.05, type: "spark-rain", gapX: 350 },
+        { time: 4.30, type: "spark-rain", gapX: 450 }
+    ]
+};
+
 const bossHardPatterns = [
     { name: "DETERMINATION: Stavtunnel", mode: "red", width: 300, duration: 8, events: [
         { time: 0.3, type: "wall", gapY: 370, speed: -360 },
@@ -148,6 +159,32 @@ const bossHardPatterns = [
         { time: 5.59, type: "wall", gapY: 400, speed: -360 },
         { time: 5.87, type: "wall", gapY: 370, speed: -360 },
         { time: 6.15, type: "wall", gapY: 400, speed: -360 }
+    ] },
+    { name: "DETERMINATION: Gniststorm", mode: "red", width: 320, duration: 8, events: [
+        { time: 0.45, type: "spark-rain", gapX: 337, dense: true },
+        { time: 1.27, type: "spark-rain", gapX: 463, dense: true },
+        { time: 2.09, type: "spark-rain", gapX: 400, dense: true },
+        { time: 2.91, type: "spark-rain", gapX: 463, dense: true },
+        { time: 3.73, type: "spark-rain", gapX: 337, dense: true },
+        { time: 4.55, type: "spark-rain", gapX: 463, dense: true },
+        { time: 5.37, type: "spark-rain", gapX: 337, dense: true },
+        { time: 6.19, type: "spark-rain", gapX: 400, dense: true },
+        { time: 7.01, type: "spark-rain", gapX: 463, dense: true }
+    ] },
+    { name: "DETERMINATION: Gnistringar", mode: "red", width: 320, duration: 8, events: [
+        { time: 0.55, type: "spark-ring", x: 365, gap: 2 },
+        { time: 2.05, type: "spark-ring", x: 435, gap: 10 },
+        { time: 3.55, type: "spark-ring", x: 365, gap: 14 },
+        { time: 5.05, type: "spark-ring", x: 435, gap: 6 },
+        { time: 6.55, type: "spark-ring", x: 365, gap: 0 }
+    ] },
+    { name: "DETERMINATION: Färgsvep", mode: "red", width: 320, duration: 8, events: [
+        { time: 0.55, type: "color-sweep", color: "blue" },
+        { time: 1.70, type: "color-sweep", color: "orange" },
+        { time: 2.85, type: "color-sweep", color: "blue" },
+        { time: 4.00, type: "color-sweep", color: "orange" },
+        { time: 5.15, type: "color-sweep", color: "orange" },
+        { time: 6.30, type: "color-sweep", color: "blue" }
     ] },
     { name: "DETERMINATION: Stavrusning", mode: "blue", width: 300, duration: 8, events: [
         { time: 0.4, type: "hurdle", height: 34, speed: -340 },
@@ -448,6 +485,8 @@ function startBoss(retry = false) {
     boss.lunchLine = 0;
     boss.determination = false;
     boss.phaseTurn = 0;
+    boss.lowHealthAttackUsed = false;
+    boss.patternIndex = 0;
     boss.turn = 0;
     boss.projectiles = [];
     boss.heartMode = "red";
@@ -558,17 +597,23 @@ function startBossDeath() {
 }
 
 function getBossPattern() {
+    if (boss.patternIndex === -1) return bossLowHealthPattern;
     return (boss.determination ? bossHardPatterns : bossPatterns)[boss.patternIndex];
 }
 
 function startBossDefense() {
-    boss.turn++;
     boss.timer = 0;
     // Öppningen spelas en gång; övriga mönster upprepas efter spelarens turer.
     if (boss.determination) {
+        boss.turn++;
         boss.patternIndex = boss.phaseTurn % bossHardPatterns.length;
         boss.phaseTurn++;
+    } else if (boss.turn > 0 && !boss.lunchEaten && !boss.lowHealthAttackUsed &&
+        boss.hp >= 10 && boss.hp < 30) {
+        boss.patternIndex = -1;
+        boss.lowHealthAttackUsed = true;
     } else {
+        boss.turn++;
         boss.patternIndex = boss.turn === 1 ? 0 : 1 + (boss.turn - 2) % (bossPatterns.length - 1);
     }
     boss.nextEvent = 0;
@@ -590,6 +635,13 @@ function startBossDefense() {
     gameState = "boss-defend";
 }
 
+function spawnBossSpark(x, y, vx, vy, radius, warning = 0) {
+    boss.projectiles.push({
+        type: "spark", x: x - radius, y: y - radius,
+        width: radius * 2, height: radius * 2, vx, vy, age: 0, warning
+    });
+}
+
 function spawnBossHazard(event) {
     const speed = event.speed;
     const boneX = speed > 0 ? bossArena.left - 14 : bossArena.right;
@@ -597,6 +649,26 @@ function spawnBossHazard(event) {
         boss.heartMode = event.mode;
         boss.gravitySpeed = 0;
         boss.jumpRequested = false;
+    } else if (event.type === "spark-rain") {
+        const spacing = event.dense ? 21 : 36;
+        const radius = event.dense ? 10 : 9;
+        for (let x = bossArena.left + 15; x < bossArena.right; x += spacing) {
+            if (Math.abs(x - event.gapX) < (event.dense ? 28 : 54)) continue;
+            spawnBossSpark(x, bossArena.top - radius, 0, event.dense ? 265 : 170, radius);
+        }
+    } else if (event.type === "spark-ring") {
+        const y = (bossArena.top + bossArena.bottom) / 2;
+        for (let i = 0; i < 16; i++) {
+            const distance = Math.abs(i - event.gap);
+            if (distance <= 1 || distance >= 15) continue;
+            const angle = i * Math.PI / 8;
+            const dx = Math.cos(angle);
+            const dy = Math.sin(angle);
+            spawnBossSpark(event.x + dx * 22, y + dy * 22, dx * 155, dy * 155, 8, 0.45);
+        }
+    } else if (event.type === "color-sweep") {
+        boss.projectiles.push({ type: "color-sweep", color: event.color, age: 0,
+            warning: bossSweep.warning, lifetime: bossSweep.warning + bossSweep.duration });
     } else if (event.type === "bone-bed") {
         boss.projectiles.push({ type: "bone-bed", x: bossArena.left,
             y: bossArena.bottom - event.height, width: bossArena.right - bossArena.left,
@@ -684,6 +756,16 @@ function spawnBossHazard(event) {
 
 function bossHazardHits(hazard, moving) {
     const radius = bossPhysics.hitRadius;
+    if (hazard.type === "spark") {
+        if (hazard.age < hazard.warning) return false;
+        const sparkRadius = hazard.width / 2;
+        return Math.hypot(heartX - hazard.x - sparkRadius, heartY - hazard.y - sparkRadius) <
+            radius + sparkRadius;
+    }
+    if (hazard.type === "color-sweep") {
+        return hazard.age >= hazard.warning && hazard.age < hazard.lifetime &&
+            (hazard.color === "blue" ? moving : !moving);
+    }
     if (hazard.type === "cannon") {
         if (hazard.age < hazard.warning || hazard.age >= hazard.warning + bossLaser.firing) return false;
         const dx = heartX - hazard.x;
@@ -777,9 +859,15 @@ function updateBossDefense(seconds) {
         boss.nextEvent++;
     }
     for (const hazard of boss.projectiles) {
-        hazard.x += hazard.vx * seconds;
-        hazard.y += (hazard.vy ?? 0) * seconds;
+        const previousAge = hazard.age;
         hazard.age += seconds;
+        if (hazard.type !== "color-sweep") {
+            const travel = hazard.type === "spark"
+                ? Math.max(0, hazard.age - Math.max(previousAge, hazard.warning))
+                : seconds;
+            hazard.x += hazard.vx * travel;
+            hazard.y += (hazard.vy ?? 0) * travel;
+        }
         if (hazard.type === "floor") {
             const rise = (hazard.age - hazard.warning) / 0.1;
             const fall = (hazard.lifetime - hazard.age) / 0.15;
@@ -805,7 +893,7 @@ function updateBossDefense(seconds) {
     }
     boss.projectiles = boss.projectiles.filter(h => h.type === "cannon"
         ? h.age < h.warning + bossLaser.firing + bossLaser.fade
-        : h.type === "floor" || h.type === "stab" ? h.age < h.lifetime
+        : h.lifetime !== undefined ? h.age < h.lifetime
         : h.x + h.width >= bossArena.left && h.x <= bossArena.right &&
             h.y + h.height >= bossArena.top && h.y <= bossArena.bottom);
     if (boss.timer >= pattern.duration) {
@@ -1329,7 +1417,35 @@ function drawBossItems() {
 
 function drawBossHazard(hazard) {
     ctx.save();
-    if (hazard.type === "stab") {
+    if (hazard.type === "spark") {
+        const radius = hazard.width / 2;
+        const x = hazard.x + radius;
+        const y = hazard.y + radius;
+        if (hazard.age < hazard.warning) ctx.globalAlpha = 0.45;
+        ctx.fillStyle = "#ff9d38";
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff1bd";
+        ctx.beginPath();
+        ctx.moveTo(x, y - radius + 2);
+        ctx.lineTo(x + 3, y - 1);
+        ctx.lineTo(x + 1, y + 1);
+        ctx.lineTo(x, y + radius - 2);
+        ctx.lineTo(x - 3, y + 1);
+        ctx.lineTo(x - 1, y - 1);
+        ctx.closePath();
+        ctx.fill();
+    } else if (hazard.type === "color-sweep") {
+        const active = hazard.age >= hazard.warning;
+        const width = bossArena.right - bossArena.left;
+        const height = bossArena.bottom - bossArena.top;
+        ctx.fillStyle = bossSweep[hazard.color];
+        ctx.globalAlpha = active ? 0.48 : 0.16;
+        ctx.fillRect(bossArena.left, bossArena.top, width, height);
+        ctx.globalAlpha = 1;
+        ctx.fillRect(bossArena.left, bossArena.top, width, 3);
+    } else if (hazard.type === "stab") {
         const sideways = hazard.direction === "left" || hazard.direction === "right";
         const width = sideways ? hazard.maxHeight : bossArena.right - bossArena.left;
         const height = sideways ? bossArena.bottom - bossArena.top : hazard.maxHeight;
@@ -1515,6 +1631,7 @@ function drawBoss() {
         }
         ctx.fillStyle = "#fff";
         const pattern = getBossPattern();
+        const sweep = boss.projectiles.find(hazard => hazard.type === "color-sweep");
         const jumpArrows = { down: "↑", up: "↓", left: "→", right: "←" };
         const controls = pattern.platforms ? "← →: gå  ↑: hoppa mellan plattformarna"
             : boss.heartMode === "blue"
@@ -1522,7 +1639,12 @@ function drawBoss() {
                 : "Pilar: flytta hjärtat";
         ctx.fillText(pattern.name + " – " + Math.max(0, Math.ceil(pattern.duration - boss.timer)), 400, 552);
         ctx.font = "16px Arial";
-        ctx.fillText(controls, 400, 585);
+        if (sweep) {
+            ctx.fillStyle = bossSweep[sweep.color];
+            ctx.fillText(sweep.color === "blue" ? "BLÅTT SVEP: stå still!" : "ORANGE SVEP: rör dig!", 400, 585);
+        } else {
+            ctx.fillText(controls, 400, 585);
+        }
     } else {
         ctx.fillStyle = "#fff";
         ctx.font = "32px Arial";
