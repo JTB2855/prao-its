@@ -609,11 +609,15 @@ function update(seconds = 1 / 60) {
         if (currentRoom === 2) {
             if (canWalkInFarmorRoom(newX, playerY)) playerX = newX;
             if (canWalkInFarmorRoom(playerX, newY)) playerY = newY;
-            if (playerY + playerSize / 2 < 0) {
+            const inKitchenHallway = playerX - playerSize / 2 >= 115 &&
+                playerX + playerSize / 2 <= 214;
+            const inBossHallway = playerY - playerSize / 2 >= 365 &&
+                playerY + playerSize / 2 <= 505;
+            if (keys.ArrowUp && inKitchenHallway && playerY + playerSize / 2 < 0) {
                 currentRoom = 3;
                 playerX = rooms[currentRoom].spawnX;
                 playerY = rooms[currentRoom].spawnY;
-            } else if (playerX - playerSize / 2 > canvas.width) {
+            } else if (keys.ArrowRight && inBossHallway && playerX - playerSize / 2 > canvas.width) {
                 startBoss();
             }
             return;
@@ -970,29 +974,21 @@ function drawBossHazard(hazard) {
         }
     } else if (hazard.type === "cannon") {
         const firingEnd = hazard.warning + bossLaser.firing;
-        if (hazard.age >= firingEnd) {
+        if (hazard.age < hazard.warning || hazard.age >= firingEnd) {
             ctx.restore();
             return;
         }
         ctx.translate(hazard.x, hazard.y);
         ctx.rotate(hazard.angle);
-        if (hazard.age < hazard.warning) {
-            ctx.strokeStyle = "#999";
-            ctx.lineWidth = 1;
-            ctx.setLineDash([4, 8]);
-        } else {
-            ctx.strokeStyle = "#80eaff";
-            ctx.lineWidth = hazard.beamWidth + 6;
-        }
+        ctx.strokeStyle = "#80eaff";
+        ctx.lineWidth = hazard.beamWidth + 6;
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(1200, 0);
         ctx.stroke();
-        if (hazard.age >= hazard.warning) {
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = hazard.beamWidth;
-            ctx.stroke();
-        }
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = hazard.beamWidth;
+        ctx.stroke();
     } else {
         ctx.fillStyle = hazard.type === "blue-bone" ? "#42dfff" : "#fff";
         const x = Math.round(hazard.x);
