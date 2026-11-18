@@ -29,7 +29,28 @@ const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
+const bossDamage = { amount: 1, cooldown: 0.025 };
 const bossPatterns = [
+    { name: "Sikaels öppningsattack", mode: "blue", width: 300, top: 300, duration: 9.2, events: [
+        { time: 0.15, type: "floor", height: 42 },
+        { time: 1.15, type: "mode", mode: "red" },
+        { time: 1.25, type: "wall", gapY: 365, speed: 320 },
+        { time: 1.37, type: "wall", gapY: 370, speed: 320 },
+        { time: 1.49, type: "wall", gapY: 375, speed: 320 },
+        { time: 1.61, type: "wall", gapY: 380, speed: 320 },
+        { time: 1.73, type: "wall", gapY: 385, speed: 320 },
+        { time: 1.85, type: "wall", gapY: 390, speed: 320 },
+        { time: 1.97, type: "wall", gapY: 395, speed: 320 },
+        { time: 2.09, type: "wall", gapY: 390, speed: 320 },
+        { time: 2.21, type: "wall", gapY: 385, speed: 320 },
+        { time: 2.33, type: "wall", gapY: 380, speed: 320 },
+        { time: 2.45, type: "wall", gapY: 375, speed: 320 },
+        { time: 2.57, type: "wall", gapY: 370, speed: 320 },
+        { time: 4.0, type: "volley", layout: "edges" },
+        { time: 5.2, type: "volley", layout: "diagonal" },
+        { time: 6.4, type: "volley", layout: "edges" },
+        { time: 7.6, type: "volley", layout: "final" }
+    ] },
     { name: "Benstorm", mode: "blue", width: 596, duration: 8, events: [
         { time: 0.6, type: "hurdle", height: 28, speed: -280 },
         { time: 1.4, type: "hurdle", height: 38, speed: -280 },
@@ -264,8 +285,7 @@ function handleBossChoice() {
     if (gameState === "boss-lost" || gameState === "boss-won") {
         startBoss(true);
     } else if (gameState === "boss-intro") {
-        boss.message = "Din tur! Fight attackerar. Item använder pajen.";
-        gameState = "boss-menu";
+        startBossDefense();
     } else if (gameState === "boss-menu") {
         if (selectedButton === 0) {
             attackBarProgress = 0;
@@ -298,11 +318,13 @@ function handleBossChoice() {
 function startBossDefense() {
     boss.turn++;
     boss.timer = 0;
-    boss.patternIndex = (boss.turn - 1) % bossPatterns.length;
+    // Öppningen spelas en gång; övriga mönster upprepas efter spelarens turer.
+    boss.patternIndex = boss.turn === 1 ? 0 : 1 + (boss.turn - 2) % (bossPatterns.length - 1);
     boss.nextEvent = 0;
     const pattern = bossPatterns[boss.patternIndex];
     bossArena.left = 400 - pattern.width / 2;
     bossArena.right = 400 + pattern.width / 2;
+    bossArena.top = pattern.top ?? 332;
     boss.heartMode = pattern.mode;
     boss.heartVelocityY = pattern.mode === "blue" ? 600 : 0;
     boss.jumpRequested = false;
@@ -316,7 +338,39 @@ function startBossDefense() {
 function spawnBossHazard(event) {
     const speed = event.speed;
     const boneX = speed > 0 ? bossArena.left - 14 : bossArena.right;
-    if (event.type === "wall") {
+    if (event.type === "mode") {
+        boss.heartMode = event.mode;
+        boss.heartVelocityY = 0;
+        boss.jumpRequested = false;
+    } else if (event.type === "floor") {
+        boss.projectiles.push({ type: "floor", x: bossArena.left, y: bossArena.bottom,
+            width: bossArena.right - bossArena.left, height: 0, maxHeight: event.height,
+            vx: 0, age: 0, lifetime: 0.9, warning: 0.45 });
+    } else if (event.type === "volley") {
+        const left = bossArena.left - 44;
+        const right = bossArena.right + 44;
+        const top = bossArena.top - 24;
+        const bottom = bossArena.bottom - 24;
+        if (event.layout === "edges") {
+            for (const y of [bossArena.top + 22, bossArena.bottom - 22]) {
+                spawnBossHazard({ type: "cannon", x: left, y, targetX: 400, targetY: y, warning: 0.55 });
+            }
+            for (const x of [bossArena.left + 24, bossArena.right - 24]) {
+                spawnBossHazard({ type: "cannon", x, y: top, targetX: x, targetY: 380, warning: 0.55 });
+            }
+        } else if (event.layout === "diagonal") {
+            for (const x of [left, right]) {
+                for (const y of [top, bottom]) {
+                    spawnBossHazard({ type: "cannon", x, y, targetX: 400, targetY: 380, warning: 0.55 });
+                }
+            }
+        } else if (event.layout === "final") {
+            for (const x of [left, right]) {
+                spawnBossHazard({ type: "cannon", x, y: 380, targetX: 400, targetY: 380,
+                    warning: 0.55, beamWidth: 90 });
+            }
+        }
+    } else if (event.type === "wall") {
         const gapTop = Math.max(bossArena.top, event.gapY - 28);
         const gapBottom = Math.min(bossArena.bottom, event.gapY + 28);
         if (gapTop > bossArena.top) {
@@ -334,25 +388,28 @@ function spawnBossHazard(event) {
         boss.projectiles.push({ type: "blue-bone", x: boneX, y: bossArena.top,
             width: 14, height: bossArena.bottom - bossArena.top, vx: speed, age: 0 });
     } else if (event.type === "cannon") {
-        const x = event.side === "left" ? bossArena.left - 44
-            : event.side === "right" ? bossArena.right + 44 : 400;
-        const y = event.side === "top" ? bossArena.top - 24 : (bossArena.top + bossArena.bottom) / 2;
+        const x = event.x ?? (event.side === "left" ? bossArena.left - 44
+            : event.side === "right" ? bossArena.right + 44 : 400);
+        const y = event.y ?? (event.side === "top" ? bossArena.top - 24 : (bossArena.top + bossArena.bottom) / 2);
         // Siktet låses när kanonen dyker upp, så spelaren hinner undan.
         boss.projectiles.push({ type: "cannon", x, y,
-            angle: Math.atan2(heartY - y, heartX - x), vx: 0, age: 0 });
+            angle: Math.atan2((event.targetY ?? heartY) - y, (event.targetX ?? heartX) - x),
+            warning: event.warning ?? bossLaser.warning, beamWidth: event.beamWidth ?? bossLaser.width,
+            vx: 0, age: 0 });
     }
 }
 
 function bossHazardHits(hazard, moving) {
     const radius = bossPhysics.hitRadius;
     if (hazard.type === "cannon") {
-        if (hazard.age < bossLaser.warning || hazard.age >= bossLaser.warning + bossLaser.firing) return false;
+        if (hazard.age < hazard.warning || hazard.age >= hazard.warning + bossLaser.firing) return false;
         const dx = heartX - hazard.x;
         const dy = heartY - hazard.y;
         const forward = dx * Math.cos(hazard.angle) + dy * Math.sin(hazard.angle);
         const distance = Math.abs(dx * Math.sin(hazard.angle) - dy * Math.cos(hazard.angle));
-        return forward >= 0 && distance < bossLaser.width / 2 + radius;
+        return forward >= 0 && distance < hazard.beamWidth / 2 + radius;
     }
+    if (hazard.type === "floor" && hazard.height <= 0) return false;
     if (hazard.type === "blue-bone" && !moving) return false;
     return heartX + radius > hazard.x && heartX - radius < hazard.x + hazard.width &&
         heartY + radius > hazard.y && heartY - radius < hazard.y + hazard.height;
@@ -396,9 +453,15 @@ function updateBossDefense(seconds) {
     for (const hazard of boss.projectiles) {
         hazard.x += hazard.vx * seconds;
         hazard.age += seconds;
-        if (boss.invincibleTime === 0 && bossHazardHits(hazard, moving)) {
-            playerHP = Math.max(0, playerHP - 10);
-            boss.invincibleTime = 1;
+        if (hazard.type === "floor") {
+            const rise = (hazard.age - hazard.warning) / 0.1;
+            const fall = (hazard.lifetime - hazard.age) / 0.15;
+            hazard.height = hazard.maxHeight * Math.max(0, Math.min(1, rise, fall));
+            hazard.y = bossArena.bottom - hazard.height;
+        }
+        if (boss.invincibleTime <= 1e-9 && bossHazardHits(hazard, moving)) {
+            playerHP = Math.max(0, playerHP - bossDamage.amount);
+            boss.invincibleTime = bossDamage.cooldown;
             if (playerHP === 0) {
                 gameState = "boss-lost";
                 return;
@@ -406,7 +469,8 @@ function updateBossDefense(seconds) {
         }
     }
     boss.projectiles = boss.projectiles.filter(h => h.type === "cannon"
-        ? h.age < bossLaser.warning + bossLaser.firing + bossLaser.fade
+        ? h.age < h.warning + bossLaser.firing + bossLaser.fade
+        : h.type === "floor" ? h.age < h.lifetime
         : h.x + h.width >= bossArena.left && h.x <= bossArena.right);
     if (boss.timer >= pattern.duration) {
         boss.projectiles = [];
@@ -427,7 +491,7 @@ function updateBoss(seconds) {
     }
     if (gameState !== "boss-defend") return;
     // Små fysiksteg hindrar snabba hinder från att hoppa över hjärtat vid låg bildfrekvens.
-    while (seconds > 0 && gameState === "boss-defend") {
+    while (seconds > 1e-9 && gameState === "boss-defend") {
         const step = Math.min(seconds, 1 / 120);
         updateBossDefense(step);
         seconds -= step;
@@ -895,29 +959,38 @@ function drawBossMenu() {
 
 function drawBossHazard(hazard) {
     ctx.save();
-    if (hazard.type === "cannon") {
-        const firingEnd = bossLaser.warning + bossLaser.firing;
+    if (hazard.type === "floor") {
+        if (hazard.age < hazard.warning) {
+            ctx.fillStyle = Math.floor(hazard.age * 20) % 2 === 0 ? "#f22" : "#7f1616";
+            ctx.fillRect(hazard.x, bossArena.bottom - hazard.maxHeight, hazard.width, hazard.maxHeight);
+        } else if (hazard.height > 0) {
+            for (let x = hazard.x; x < hazard.x + hazard.width; x += 16) {
+                drawBossHazard({ type: "bone", x, y: hazard.y, width: 14, height: hazard.height });
+            }
+        }
+    } else if (hazard.type === "cannon") {
+        const firingEnd = hazard.warning + bossLaser.firing;
         if (hazard.age >= firingEnd) {
             ctx.restore();
             return;
         }
         ctx.translate(hazard.x, hazard.y);
         ctx.rotate(hazard.angle);
-        if (hazard.age < bossLaser.warning) {
+        if (hazard.age < hazard.warning) {
             ctx.strokeStyle = "#999";
             ctx.lineWidth = 1;
             ctx.setLineDash([4, 8]);
         } else {
             ctx.strokeStyle = "#80eaff";
-            ctx.lineWidth = bossLaser.width + 6;
+            ctx.lineWidth = hazard.beamWidth + 6;
         }
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(1200, 0);
         ctx.stroke();
-        if (hazard.age >= bossLaser.warning) {
+        if (hazard.age >= hazard.warning) {
             ctx.strokeStyle = "#fff";
-            ctx.lineWidth = bossLaser.width;
+            ctx.lineWidth = hazard.beamWidth;
             ctx.stroke();
         }
     } else {
@@ -940,11 +1013,11 @@ function drawBossCannon(hazard) {
     ctx.rotate(hazard.angle);
     const scale = Math.min(1, hazard.age / 0.18);
     ctx.scale(scale, scale);
-    const firingEnd = bossLaser.warning + bossLaser.firing;
+    const firingEnd = hazard.warning + bossLaser.firing;
     if (hazard.age > firingEnd) {
         ctx.globalAlpha = Math.max(0, 1 - (hazard.age - firingEnd) / bossLaser.fade);
     }
-    const open = hazard.age >= bossLaser.warning ? 9 : 3;
+    const open = hazard.age >= hazard.warning ? 9 : 3;
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.moveTo(-26, -13);
@@ -964,7 +1037,7 @@ function drawBossCannon(hazard) {
     ctx.fillStyle = "#000";
     ctx.fillRect(-17, -11, 12, 8);
     ctx.fillRect(-17, 3, 12, 8);
-    ctx.fillStyle = hazard.age < bossLaser.warning ? "#42dfff" : "#ffea00";
+    ctx.fillStyle = hazard.age < hazard.warning ? "#42dfff" : "#ffea00";
     ctx.fillRect(-12, -9, 5, 4);
     ctx.restore();
 }
@@ -991,7 +1064,7 @@ function drawBoss() {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
-        ctx.fillText("Z: fortsätt till striden", 400, 410);
+        ctx.fillText("Z: starta striden – Sikael attackerar först!", 400, 410);
     } else if (gameState === "boss-menu") {
         drawBossMenu();
     } else if (gameState === "boss-slider") {
@@ -1006,12 +1079,11 @@ function drawBoss() {
         ctx.rect(bossArena.left, bossArena.top, bossArena.right - bossArena.left, bossArena.bottom - bossArena.top);
         ctx.clip();
         for (const hazard of boss.projectiles) drawBossHazard(hazard);
-        if (boss.invincibleTime === 0 || Math.floor(boss.invincibleTime * 10) % 2 === 0) {
-            ctx.save();
-            if (boss.heartMode === "blue") ctx.filter = "hue-rotate(240deg)";
-            drawCharacter(heartX, heartY, bossHeartSize * 2, heartImage);
-            ctx.restore();
-        }
+        ctx.save();
+        if (boss.invincibleTime > 0) ctx.globalAlpha = 0.55;
+        if (boss.heartMode === "blue") ctx.filter = "hue-rotate(240deg)";
+        drawCharacter(heartX, heartY, bossHeartSize * 2, heartImage);
+        ctx.restore();
         ctx.restore();
         for (const hazard of boss.projectiles) {
             if (hazard.type === "cannon") drawBossCannon(hazard);
