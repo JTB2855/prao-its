@@ -8,16 +8,16 @@
   --umu-blue: #007bff;
   --umu-web-blue: #00aaff;
   --umu-pink: #e5a1a0;
-  --umu-cream: #ffd900;
+  --umu-cream: #ffdd00;
   --umu-green: #00ff8c;
   --umu-orange: #ff9500;
   --color-accent: #0400ff;
-  --color-bg: #ffee00;
-  --color-bg-secondary: #ffcc00;
+  --color-bg: #ffee0000;
+  --color-bg-secondary: #ff0000;
   --color-link: #00aaff;
   --color-secondary: #007bff;
   --color-secondary-accent: #73a79026;
-  --color-shadow: #ffd000;
+  --color-shadow: #000000;
   --color-table: #007bff;
   --color-text: #2bff00;
   --color-text-secondary: #0051ff;
@@ -44,7 +44,7 @@
     --color-shadow: #243b42;
     --color-table: #0097fc;
     --color-text: #0d3a32;
-    --color-text-secondary: #dbb210;
+    --color-text-secondary: #000000;
   }
 }
 
@@ -684,12 +684,17 @@ main {
 }
 
 main > section {
-  background: var(--color-bg);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
   border-radius: var(--border-radius);
   border-top: 5px solid var(--umu-green);
   box-shadow: var(--box-shadow) var(--color-shadow);
   margin: 0 0 2rem;
   padding: 1.5rem 2rem;
+}
+
+.veckans-sammanfattning {
+  background-color: var(--color-bg-secondary);
 }
 
 main > section:nth-of-type(5n + 2) {
@@ -717,7 +722,7 @@ main > section:has(> aside) {
 
 main > section > h2:first-child,
 main > section > header h2 {
-  color: var(--umu-blue);
+  color: var(--color-text);
   margin-top: 0;
 }
 
@@ -726,11 +731,12 @@ h3 {
 }
 
 section aside {
-  background: var(--color-bg);
-  border-top: 4px solid var(--umu-green);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  border-top: 4px solid var(--umu-cream);
   box-sizing: border-box;
   margin: 0.75rem;
-  text-align: var(--justify-normal);
+  text-align: left;
   transition: transform 0.15s ease;
 }
 
@@ -760,7 +766,8 @@ article {
 }
 
 article aside {
-  background: var(--color-secondary-accent);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
   border-left: 4px solid var(--umu-green);
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
   padding: 0.25rem 1rem;
@@ -801,14 +808,15 @@ table tr:nth-child(even) {
 }
 
 details {
-  background: var(--color-secondary-accent);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
   border-left: 4px solid var(--umu-green);
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
   padding: 0.75rem 1rem;
 }
 
 details summary {
-  color: var(--umu-blue);
+  color: var(--color-text);
 }
 
 details[open] summary {
@@ -845,4 +853,15 @@ nav ul li:focus-within ul {
 
 nav ul li ul li a {
   display: block;
+}
+
+main > section h3,
+main > section a,
+main > section table td:first-child,
+section aside h3,
+section aside a,
+article aside h3,
+article aside a,
+details a {
+  color: var(--color-text);
 }
