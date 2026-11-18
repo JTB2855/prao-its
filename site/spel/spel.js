@@ -724,6 +724,44 @@ function drawComputer(x, y, size) {
     ctx.fillRect(x - size * 0.3, y + size * 0.35, size * 0.6, size * 0.1);
 }
 
+function drawBossStatus(y) {
+    ctx.save();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 24px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("CHARA", 40, y);
+    ctx.fillText("HP", 245, y);
+    ctx.fillStyle = "#b82020";
+    ctx.fillRect(295, y - 12, 180, 24);
+    ctx.fillStyle = "#ffff00";
+    ctx.fillRect(295, y - 12, 180 * Math.max(0, Math.min(1, playerHP / maxHP)), 24);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(playerHP + " / " + maxHP, 500, y);
+    ctx.restore();
+}
+
+function drawBossMenu() {
+    ctx.save();
+    const buttons = ["FIGHT", "ACT", "ITEM", "MERCY"];
+    ctx.lineWidth = 3;
+    ctx.font = "bold 25px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < buttons.length; i++) {
+        const x = 30 + i * 195;
+        const color = i === selectedButton ? "#ffff00" : "#ff8c20";
+        ctx.strokeStyle = color;
+        ctx.strokeRect(x, 530, 155, 48);
+        ctx.fillStyle = color;
+        ctx.fillText(buttons[i], x + 36, 554);
+        if (i === selectedButton) {
+            drawCharacter(x + 19, 554, 20, heartImage);
+        }
+    }
+    ctx.restore();
+}
+
 function drawBoss() {
     ctx.save();
     ctx.fillStyle = "#000";
@@ -732,8 +770,9 @@ function drawBoss() {
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
     ctx.fillStyle = "#fff";
-    ctx.fillText("CHARA  HP " + playerHP + "/" + maxHP, 30, 35);
-    ctx.fillText("Paj: " + (hasPie ? "1" : "0"), 30, 65);
+    drawBossStatus(gameState === "boss-menu" ? 492 : 35);
+    ctx.font = "16px monospace";
+    ctx.fillText("Paj: " + (hasPie ? "1" : "0"), 30, 70);
     ctx.textAlign = "center";
     drawComputer(400, 155, 140);
     ctx.fillStyle = "#fff";
@@ -747,7 +786,7 @@ function drawBoss() {
         ctx.strokeRect(100, 350, 600, 100);
         ctx.fillText("Z: fortsätt till striden", 400, 410);
     } else if (gameState === "boss-menu") {
-        drawFightMenu();
+        drawBossMenu();
     } else if (gameState === "boss-slider") {
         drawAttackBar();
     } else if (gameState === "boss-defend") {
