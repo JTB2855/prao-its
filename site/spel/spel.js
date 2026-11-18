@@ -636,7 +636,7 @@ function spawnBossHazard(event) {
         } else if (event.layout === "final") {
             for (const x of [left, right]) {
                 spawnBossHazard({ type: "cannon", x, y: 380, targetX: 400, targetY: 380,
-                    warning: 0.55, beamWidth: 90 });
+                    warning: 0.55, beamWidth: 90, powered: true });
             }
         }
     } else if (event.type === "wall") {
@@ -664,7 +664,7 @@ function spawnBossHazard(event) {
         boss.projectiles.push({ type: "cannon", x, y,
             angle: Math.atan2((event.targetY ?? heartY) - y, (event.targetX ?? heartX) - x),
             warning: event.warning ?? bossLaser.warning, beamWidth: event.beamWidth ?? bossLaser.width,
-            vx: 0, age: 0 });
+            powered: event.powered === true, vx: 0, age: 0 });
     }
 }
 
@@ -1350,11 +1350,16 @@ function drawBossHazard(hazard) {
         }
         ctx.translate(hazard.x, hazard.y);
         ctx.rotate(hazard.angle);
-        ctx.strokeStyle = "#80eaff";
-        ctx.lineWidth = hazard.beamWidth + 6;
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(1200, 0);
+        if (hazard.powered) {
+            ctx.strokeStyle = "rgba(80, 207, 255, 0.24)";
+            ctx.lineWidth = hazard.beamWidth + 34;
+            ctx.stroke();
+        }
+        ctx.strokeStyle = hazard.powered ? "#a5f5ff" : "#80eaff";
+        ctx.lineWidth = hazard.beamWidth + (hazard.powered ? 12 : 6);
         ctx.stroke();
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = hazard.beamWidth;
@@ -1374,7 +1379,7 @@ function drawBossCannon(hazard) {
     ctx.save();
     ctx.translate(hazard.x, hazard.y);
     ctx.rotate(hazard.angle);
-    const scale = Math.min(1, hazard.age / 0.18);
+    const scale = Math.min(1, hazard.age / 0.18) * (hazard.powered ? 1.65 : 1);
     ctx.scale(scale, scale);
     const firingEnd = hazard.warning + bossLaser.firing;
     if (hazard.age > firingEnd) {
