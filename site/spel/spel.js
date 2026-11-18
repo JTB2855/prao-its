@@ -23,7 +23,7 @@ const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false,
     patternIndex: 0, nextEvent: 0, heartMode: "red", heartVelocityY: 0,
-    jumpRequested: false
+    jumpRequested: false, lunchEaten: false
 };
 const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 const bossHeartSize = 10;
@@ -270,7 +270,9 @@ function startBoss(retry = false) {
         boss.entryPie = hasPie;
     }
     currentRoom = 9;
+    boss.maxHP = 100;
     boss.hp = boss.maxHP;
+    boss.lunchEaten = false;
     boss.turn = 0;
     boss.projectiles = [];
     boss.heartMode = "red";
@@ -285,6 +287,8 @@ function handleBossChoice() {
     if (gameState === "boss-lost" || gameState === "boss-won") {
         startBoss(true);
     } else if (gameState === "boss-intro") {
+        startBossDefense();
+    } else if (gameState === "boss-lunch") {
         startBossDefense();
     } else if (gameState === "boss-menu") {
         if (selectedButton === 0) {
@@ -307,7 +311,13 @@ function handleBossChoice() {
         const damage = Math.round(5 + 20 * (1 - Math.abs(attackBarProgress - 50) / 50));
         boss.hp = Math.max(0, boss.hp - damage);
         boss.message = "Du gjorde " + damage + " skada!";
-        if (boss.hp === 0) {
+        if (boss.hp < 10 && !boss.lunchEaten) {
+            boss.lunchEaten = true;
+            boss.hp += 250;
+            boss.maxHP = Math.max(boss.maxHP, boss.hp);
+            boss.message = "Sikael äter coop-lunch! +250 HP";
+            gameState = "boss-lunch";
+        } else if (boss.hp === 0) {
             gameState = "boss-won";
         } else {
             startBossDefense();
@@ -1061,6 +1071,11 @@ function drawBoss() {
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
         ctx.fillText("Z: starta striden – Sikael attackerar först!", 400, 410);
+    } else if (gameState === "boss-lunch") {
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(100, 350, 600, 100);
+        ctx.fillText("Z: fortsätt striden", 400, 410);
     } else if (gameState === "boss-menu") {
         drawBossMenu();
     } else if (gameState === "boss-slider") {

@@ -95,6 +95,7 @@
 - Status: **Detaljer ej definierat än**
 
 ## Sikael (boss, slutet)
+- 2026-11-18 – gjord: "när sikael hamnar under 10 hälsa så äter han \"coop-lunch\" och får tillbaka 250hp" – eleven godkände en gång per bossfight, även när träffen sänker honom till 0 HP. Lägg till 250 HP utan 100-tak (9 blir 259, 0 blir 250), uppdatera hans max-HP och pausa med texten "Sikael äter coop-lunch! +250 HP". Z fortsätter med nästa försvarsomgång. Vid nytt försök återställs lunchen och Sikael börjar på 100/100 igen. Gränsen exakt 10 HP, dödlig träff, engångsanvändning, visning, paus, vinst och omstart är testade.
 - 2026-11-18 – gjord: "bossfighten startar när man går till köket" – godkänd tydligare dörrkontroll: uppåt inom köksgången leder till köket; höger inom bossgången leder till Sikael. Köksvägen och återvägen testade tre gånger, högra dörren och väggarna testade. Felet kunde inte återskapas längs köksvägen; tidigare agenttester hade lämnat en öppen spelflik i bossläge. Testerna återställer nu spelfliken till vardagsrummet.
 - 2026-11-18 – gjord: "ta bort linjerna som visar var laserna ska skjuta" – godkänt och genomfört: inga siktlinjer före skott, kanonerna laddar fortfarande och själva laserstrålarna visas när de skjuter.
 - 2026-11-18 – ersatt: "det glitchar lite ibland" – eleven förtydligade att det avsåg bossfighten vid köksgången, inte en separat glitch.
