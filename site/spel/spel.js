@@ -23,13 +23,20 @@ const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPie: false,
     patternIndex: 0, nextEvent: 0, heartMode: "red", heartVelocityY: 0,
-    jumpRequested: false, lunchEaten: false
+    jumpRequested: false, lunchEaten: false, lunchLine: 0,
+    determination: false, phaseTurn: 0
 };
 const bossArena = { left: 102, right: 698, top: 332, bottom: 460 };
 const bossHeartSize = 10;
 const bossPhysics = { speed: 210, gravity: 1500, jump: 450, jumpCut: 150, hitRadius: 5 };
 const bossLaser = { warning: 0.75, firing: 0.35, fade: 0.2, width: 26 };
 const bossDamage = { amount: 1, cooldown: 0.025 };
+const bossLunchLines = [
+    "You were stronger than i thought",
+    "But i wont die",
+    "Sikael äter coop-lunch med trocadero! +250 HP",
+    "DETERMINATION"
+];
 const bossPatterns = [
     { name: "Sikaels öppningsattack", mode: "blue", width: 300, top: 300, duration: 9.2, events: [
         { time: 0.15, type: "floor", height: 42 },
@@ -96,6 +103,55 @@ const bossPatterns = [
         { time: 4.8, type: "cannon", side: "top" },
         { time: 6.0, type: "cannon", side: "right" },
         { time: 6.0, type: "cannon", side: "left" }
+    ] }
+];
+
+const bossHardPatterns = [
+    { name: "DETERMINATION: Bentunnel", mode: "red", width: 300, duration: 8, events: [
+        { time: 0.3, type: "wall", gapY: 370, speed: -360 },
+        { time: 0.75, type: "wall", gapY: 400, speed: -360 },
+        { time: 1.2, type: "wall", gapY: 430, speed: -360 },
+        { time: 1.65, type: "wall", gapY: 400, speed: -360 },
+        { time: 2.1, type: "wall", gapY: 370, speed: -360 },
+        { time: 2.55, type: "wall", gapY: 400, speed: -360 },
+        { time: 3.0, type: "wall", gapY: 430, speed: -360 },
+        { time: 3.45, type: "wall", gapY: 400, speed: -360 },
+        { time: 3.9, type: "wall", gapY: 370, speed: -360 },
+        { time: 4.35, type: "wall", gapY: 400, speed: -360 },
+        { time: 4.8, type: "wall", gapY: 430, speed: -360 },
+        { time: 5.25, type: "wall", gapY: 400, speed: -360 },
+        { time: 5.7, type: "wall", gapY: 370, speed: -360 },
+        { time: 6.15, type: "wall", gapY: 400, speed: -360 }
+    ] },
+    { name: "DETERMINATION: Benrusning", mode: "blue", width: 300, duration: 8, events: [
+        { time: 0.4, type: "hurdle", height: 34, speed: -340 },
+        { time: 1.1, type: "hurdle", height: 42, speed: 340 },
+        { time: 1.8, type: "hurdle", height: 34, speed: -340 },
+        { time: 2.5, type: "hurdle", height: 42, speed: 340 },
+        { time: 3.2, type: "hurdle", height: 34, speed: -340 },
+        { time: 3.9, type: "hurdle", height: 42, speed: 340 },
+        { time: 4.6, type: "hurdle", height: 34, speed: -340 },
+        { time: 5.3, type: "hurdle", height: 42, speed: 340 },
+        { time: 6.0, type: "hurdle", height: 34, speed: -340 },
+        { time: 6.7, type: "hurdle", height: 42, speed: 340 }
+    ] },
+    { name: "DETERMINATION: Laserstorm", mode: "red", width: 300, duration: 8, events: [
+        { time: 0.3, type: "cannon", side: "left", warning: 0.45 },
+        { time: 0.3, type: "cannon", side: "top", warning: 0.45 },
+        { time: 1.15, type: "cannon", side: "right", warning: 0.45 },
+        { time: 1.15, type: "cannon", side: "top", warning: 0.45 },
+        { time: 2.0, type: "cannon", side: "left", warning: 0.45 },
+        { time: 2.0, type: "cannon", side: "right", warning: 0.45 },
+        { time: 2.85, type: "cannon", side: "right", warning: 0.45 },
+        { time: 2.85, type: "cannon", side: "top", warning: 0.45 },
+        { time: 3.7, type: "cannon", side: "left", warning: 0.45 },
+        { time: 3.7, type: "cannon", side: "top", warning: 0.45 },
+        { time: 4.55, type: "cannon", side: "left", warning: 0.45 },
+        { time: 4.55, type: "cannon", side: "right", warning: 0.45 },
+        { time: 5.4, type: "cannon", side: "right", warning: 0.45 },
+        { time: 5.4, type: "cannon", side: "top", warning: 0.45 },
+        { time: 6.25, type: "cannon", side: "left", warning: 0.45 },
+        { time: 6.25, type: "cannon", side: "top", warning: 0.45 }
     ] }
 ];
 
@@ -273,6 +329,9 @@ function startBoss(retry = false) {
     boss.maxHP = 100;
     boss.hp = boss.maxHP;
     boss.lunchEaten = false;
+    boss.lunchLine = 0;
+    boss.determination = false;
+    boss.phaseTurn = 0;
     boss.turn = 0;
     boss.projectiles = [];
     boss.heartMode = "red";
@@ -289,7 +348,17 @@ function handleBossChoice() {
     } else if (gameState === "boss-intro") {
         startBossDefense();
     } else if (gameState === "boss-lunch") {
-        startBossDefense();
+        boss.lunchLine++;
+        if (boss.lunchLine === 2) {
+            boss.hp += 250;
+            boss.maxHP = Math.max(boss.maxHP, boss.hp);
+        }
+        if (boss.lunchLine === 3) boss.determination = true;
+        if (boss.lunchLine < bossLunchLines.length) {
+            boss.message = bossLunchLines[boss.lunchLine];
+        } else {
+            startBossDefense();
+        }
     } else if (gameState === "boss-menu") {
         if (selectedButton === 0) {
             attackBarProgress = 0;
@@ -313,9 +382,8 @@ function handleBossChoice() {
         boss.message = "Du gjorde " + damage + " skada!";
         if (boss.hp < 10 && !boss.lunchEaten) {
             boss.lunchEaten = true;
-            boss.hp += 250;
-            boss.maxHP = Math.max(boss.maxHP, boss.hp);
-            boss.message = "Sikael äter coop-lunch! +250 HP";
+            boss.lunchLine = 0;
+            boss.message = bossLunchLines[0];
             gameState = "boss-lunch";
         } else if (boss.hp === 0) {
             gameState = "boss-won";
@@ -325,13 +393,22 @@ function handleBossChoice() {
     }
 }
 
+function getBossPattern() {
+    return (boss.determination ? bossHardPatterns : bossPatterns)[boss.patternIndex];
+}
+
 function startBossDefense() {
     boss.turn++;
     boss.timer = 0;
     // Öppningen spelas en gång; övriga mönster upprepas efter spelarens turer.
-    boss.patternIndex = boss.turn === 1 ? 0 : 1 + (boss.turn - 2) % (bossPatterns.length - 1);
+    if (boss.determination) {
+        boss.patternIndex = boss.phaseTurn % bossHardPatterns.length;
+        boss.phaseTurn++;
+    } else {
+        boss.patternIndex = boss.turn === 1 ? 0 : 1 + (boss.turn - 2) % (bossPatterns.length - 1);
+    }
     boss.nextEvent = 0;
-    const pattern = bossPatterns[boss.patternIndex];
+    const pattern = getBossPattern();
     bossArena.left = 400 - pattern.width / 2;
     bossArena.right = 400 + pattern.width / 2;
     bossArena.top = pattern.top ?? 332;
@@ -426,7 +503,7 @@ function bossHazardHits(hazard, moving) {
 }
 
 function updateBossDefense(seconds) {
-    const pattern = bossPatterns[boss.patternIndex];
+    const pattern = getBossPattern();
     const previousX = heartX;
     const previousY = heartY;
     let horizontal = Number(Boolean(keys.ArrowRight)) - Number(Boolean(keys.ArrowLeft));
@@ -1063,6 +1140,11 @@ function drawBoss() {
     drawCharacter(400, 145, 190, sikaelImage);
     ctx.fillStyle = "#fff";
     ctx.fillText("SIKAEL  HP " + boss.hp + "/" + boss.maxHP, 400, 265);
+    if (boss.determination) {
+        ctx.fillStyle = "#ff3838";
+        ctx.fillText("DETERMINATION", 400, 35);
+        ctx.fillStyle = "#fff";
+    }
     ctx.font = "18px Arial";
     if (gameState !== "boss-defend") ctx.fillText(boss.message, 400, 305);
 
@@ -1075,7 +1157,7 @@ function drawBoss() {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
-        ctx.fillText("Z: fortsätt striden", 400, 410);
+        ctx.fillText(boss.lunchLine < bossLunchLines.length - 1 ? "Z: nästa" : "Z: fortsätt striden", 400, 410);
     } else if (gameState === "boss-menu") {
         drawBossMenu();
     } else if (gameState === "boss-slider") {
@@ -1100,7 +1182,7 @@ function drawBoss() {
             if (hazard.type === "cannon") drawBossCannon(hazard);
         }
         ctx.fillStyle = "#fff";
-        const pattern = bossPatterns[boss.patternIndex];
+        const pattern = getBossPattern();
         const controls = boss.heartMode === "blue" ? "← →: gå  ↑: hoppa" : "Pilar: flytta hjärtat";
         ctx.fillText(pattern.name + " – " + controls + " – " +
             Math.max(0, Math.ceil(pattern.duration - boss.timer)), 400, 585);
