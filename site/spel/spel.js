@@ -12,7 +12,18 @@ let pieCount = 0;
 let pickupMessageTime = 0;
 let pickupMessage = "";
 let kontorTid = 0;
-const kontorVantetid = 1;
+// Sekunder i kontoret: Sikael tittar ner, blir glad och tittar upp, blir sur. Sedan börjar striden.
+const kontorTittarNerTid = 1;
+const kontorGladTid = 1 / 3;
+const kontorSurTid = 1;
+const kontorVantetid = kontorTittarNerTid + kontorGladTid + kontorSurTid;
+// Hur många gånger per sekund Char vänder sig i glitchen med två motsatta knappar
+const glitchVandningarPerSekund = 20;
+
+// Växlar mellan två riktningar. tid är hur länge knapparna har hållits in.
+function vandFramOchTillbaka(riktningA, riktningB, tid) {
+    return Math.floor(tid * glitchVandningarPerSekund) % 2 === 0 ? riktningA : riktningB;
+}
 // Skärmen blinkar två gånger innan en strid börjar. Under tiden går det inte att trycka.
 const blinkLangd = 0.5;
 let blinkTid = 0;
@@ -51,8 +62,12 @@ const bossLunchLines = [
     "Sikael äter coop-lunch med trocadero! +250 hälsa",
     "DETERMINATION"
 ];
-// Sekunder det tar för Sikael att sjunka ner på knä.
-const sikaelKnaTid = 1.2;
+// Sikael sjunker ner på knä med rutorna i sikael-sjunk.png (4 kolumner, 2 rader).
+// Sista rutan är Sikael på knä.
+const sikaelSjunkRutor = 8;
+const sikaelSjunkKolumner = 4;
+const sekunderPerRuta = 0.5;
+const sikaelKnaTid = sikaelSjunkRutor * sekunderPerRuta;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -556,12 +571,19 @@ const kaffePixlar = [
     ".WWWW..."
 ];
 
-const sikaelImage = new Image();
-sikaelImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael.");
-sikaelImage.src = "images/sikael.png";
-const sikaelKneelingImage = new Image();
-sikaelKneelingImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael på knä.");
-sikaelKneelingImage.src = "images/sikael-kna.png";
+const sikaelSjunkImage = new Image();
+sikaelSjunkImage.onerror = () => console.error("Kunde inte ladda bilderna när Sikael sjunker.");
+sikaelSjunkImage.src = "images/sikael-sjunk.png";
+// Sikaels bilder i kontoret innan striden
+const sikaelTittarNerImage = new Image();
+sikaelTittarNerImage.onerror = () => console.error("Kunde inte ladda bilden när Sikael tittar ner.");
+sikaelTittarNerImage.src = "images/sikael-tittar-ner.png";
+const sikaelGladImage = new Image();
+sikaelGladImage.onerror = () => console.error("Kunde inte ladda bilden när Sikael är glad.");
+sikaelGladImage.src = "images/sikael-glad.png";
+const sikaelSurImage = new Image();
+sikaelSurImage.onerror = () => console.error("Kunde inte ladda bilden när Sikael är sur.");
+sikaelSurImage.src = "images/sikael-sur.png";
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1255,6 +1277,16 @@ function canWalkInOffice(x, y) {
     return x - halfSize >= 60 && x + halfSize <= 740 && y - halfSize >= 290 && y + halfSize <= 580;
 }
 
+// Kan Char stå på (x, y) i rummet där Char är nu? I skogsdungen är skärmens kanter väggar.
+function kanGaTill(x, y) {
+    if (currentRoom === 2) return canWalkInFarmorRoom(x, y);
+    if (currentRoom === 3) return canWalkInKitchen(x, y);
+    if (currentRoom === 6) return canWalkInCorridor(x, y);
+    if (currentRoom === 7) return canWalkInOffice(x, y);
+    const halv = playerSize / 2;
+    return x >= halv && x <= canvas.width - halv && y >= halv && y <= canvas.height - halv;
+}
+
 function arInne(ruta, x, y) {
     return x >= ruta.x && x <= ruta.x + ruta.bredd && y >= ruta.y && y <= ruta.y + ruta.hojd;
 }
@@ -1308,6 +1340,16 @@ function update(seconds = 1 / 60) {
         }
         spelarenGar = keys["ArrowUp"] || keys["ArrowDown"] || keys["ArrowLeft"] || keys["ArrowRight"];
         gangTid = spelarenGar ? gangTid + seconds : 0;
+        // Easter egg från Undertale: står Char mot en vägg och man håller in två motsatta
+        // knappar vänder sig Char fram och tillbaka supersnabbt. Man kan glida åt sidan.
+        const vaggUppEllerNer = !kanGaTill(playerX, playerY - speed) || !kanGaTill(playerX, playerY + speed);
+        const vaggVansterEllerHoger = !kanGaTill(playerX - speed, playerY) || !kanGaTill(playerX + speed, playerY);
+        if (keys["ArrowUp"] && keys["ArrowDown"] && vaggUppEllerNer) {
+            currentDirection = vandFramOchTillbaka(0, 2, gangTid);
+        }
+        if (keys["ArrowLeft"] && keys["ArrowRight"] && vaggVansterEllerHoger) {
+            currentDirection = vandFramOchTillbaka(3, 1, gangTid);
+        }
 
         if (currentRoom === 2) {
             if (canWalkInFarmorRoom(newX, playerY)) playerX = newX;
@@ -1382,27 +1424,11 @@ function update(seconds = 1 / 60) {
             return;
         }
 
-        // Väggkollisioner i övriga rum
-        if (newY < 0 && currentRoom > 0) {
-            currentRoom--;
-            playerX = rooms[currentRoom].spawnX;
-            playerY = rooms[currentRoom].spawnY;
-        } else if (newY > canvas.height && currentRoom < rooms.length - 1) {
-            currentRoom++;
-            playerX = rooms[currentRoom].spawnX;
-            playerY = rooms[currentRoom].spawnY;
-        } else if (newX < 0 && currentRoom > 0) {
-            currentRoom--;
-            playerX = rooms[currentRoom].spawnX;
-            playerY = rooms[currentRoom].spawnY;
-        } else if (newX > canvas.width && currentRoom < rooms.length - 1) {
-            currentRoom++;
-            playerX = rooms[currentRoom].spawnX;
-            playerY = rooms[currentRoom].spawnY;
-        } else {
-            playerX = newX;
-            playerY = newY;
-        }
+        // Skogsdungen: kanterna är väggar, så man stannar i stället för att gå ut.
+        // Till Farmors hus kommer man när Farmor räddar en från Flowie.
+        const halv = playerSize / 2;
+        playerX = Math.max(halv, Math.min(canvas.width - halv, newX));
+        playerY = Math.max(halv, Math.min(canvas.height - halv, newY));
     }
 
     if (gameState === "attack") {
@@ -1645,21 +1671,33 @@ function ritaFlowie(x, y, ansikte, pixel) {
 }
 
 function drawSikael(kneeling, context = ctx) {
-    if (kneeling && sikaelKneelingImage.complete && sikaelKneelingImage.naturalWidth > 0) {
-        drawCharacter(400, 165, 150, sikaelKneelingImage, context);
+    if (kneeling) {
+        ritaSikaelRuta(sikaelSjunkRutor - 1, context);
     } else {
-        drawCharacter(400, 145, 190, sikaelImage, context);
+        // Under fighten är Sikael sur
+        drawCharacter(400, 145, 190, sikaelSurImage, context);
     }
 }
 
-// andel går från 0 (står) till 1 (på knä). Stående bilden sjunker och tonar bort.
+// andel går från 0 (står) till 1 (på knä). En ruta i taget visas, hackigt som i Undertale.
 function ritaSikaelSomFaller(andel) {
-    ctx.save();
-    ctx.globalAlpha = 1 - andel;
-    drawCharacter(400, 145 + 20 * andel, 190, sikaelImage);
-    ctx.globalAlpha = andel;
-    drawCharacter(400, 165, 150, sikaelKneelingImage);
-    ctx.restore();
+    const ruta = Math.min(sikaelSjunkRutor - 1, Math.floor(andel * sikaelSjunkRutor));
+    ritaSikaelRuta(ruta);
+}
+
+// Ritar en av rutorna i sikael-sjunk.png. Ruta 0 är först, sedan åt höger och nästa rad.
+function ritaSikaelRuta(ruta, context = ctx) {
+    if (!sikaelSjunkImage.complete || sikaelSjunkImage.naturalWidth === 0) return;
+    const rutaBredd = sikaelSjunkImage.naturalWidth / sikaelSjunkKolumner;
+    const rutaHojd = sikaelSjunkImage.naturalHeight / (sikaelSjunkRutor / sikaelSjunkKolumner);
+    const kalla = { x: (ruta % sikaelSjunkKolumner) * rutaBredd, y: Math.floor(ruta / sikaelSjunkKolumner) * rutaHojd };
+    // Rutan ritas så att fötterna hamnar där de andra Sikael-bilderna har dem (y = 240).
+    const skala = 220 / rutaHojd;
+    context.save();
+    context.imageSmoothingEnabled = false;
+    context.drawImage(sikaelSjunkImage, kalla.x, kalla.y, rutaBredd, rutaHojd,
+        400 - rutaBredd * skala / 2, 240 - rutaHojd * skala * 0.92, rutaBredd * skala, rutaHojd * skala);
+    context.restore();
 }
 
 function drawDialogue() {
@@ -1949,7 +1987,50 @@ function ritaKorridor() {
     ritaMeddelande();
 }
 
-// Kontoret uppifrån. Sikael sitter halvt bakom skrivbordet tills striden börjar.
+// Kontoret uppifrån. Sikael står halvt bakom skrivbordet tills striden börjar.
+// Vilken bild som visas beror på hur länge man har varit i kontoret.
+function sikaelKontorBild(tid) {
+    if (tid < kontorTittarNerTid) return sikaelTittarNerImage;
+    if (tid < kontorTittarNerTid + kontorGladTid) return sikaelGladImage;
+    return sikaelSurImage;
+}
+
+// Färger på Sikaels kungastol
+const kungastolFarger = { guld: "#e0b02a", morkGuld: "#9c7415", sammet: "#b3172b", morkSammet: "#6e0d1a" };
+
+// Kungastol sedd framifrån. x är mitten, nederkant är var stolen slutar nedåt.
+function ritaKungastol(x, nederkant) {
+    const f = kungastolFarger;
+    // Kronspetsar överst på ryggen
+    ctx.fillStyle = f.guld;
+    for (const dx of [-50, -20, 10, 40]) {
+        ctx.fillRect(x + dx, nederkant - 140, 10, 20);
+    }
+    ctx.fillRect(x - 10, nederkant - 160, 20, 40);
+    // Ryggen: guldram med röd sammet
+    ctx.fillStyle = f.morkGuld;
+    ctx.fillRect(x - 64, nederkant - 124, 128, 124);
+    ctx.fillStyle = f.guld;
+    ctx.fillRect(x - 60, nederkant - 120, 120, 120);
+    ctx.fillStyle = f.morkSammet;
+    ctx.fillRect(x - 46, nederkant - 106, 92, 106);
+    ctx.fillStyle = f.sammet;
+    ctx.fillRect(x - 42, nederkant - 102, 84, 102);
+    // Röd juvel högst upp
+    ctx.fillStyle = f.sammet;
+    ctx.fillRect(x - 5, nederkant - 150, 10, 10);
+    // Armstöd på båda sidor
+    for (const sida of [-1, 1]) {
+        const ax = x + sida * 72 - 14;
+        ctx.fillStyle = f.morkGuld;
+        ctx.fillRect(ax, nederkant - 54, 28, 54);
+        ctx.fillStyle = f.guld;
+        ctx.fillRect(ax + 2, nederkant - 52, 24, 12);
+        ctx.fillStyle = f.sammet;
+        ctx.fillRect(ax + 8, nederkant - 36, 12, 30);
+    }
+}
+
 function ritaKontor() {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -1979,7 +2060,8 @@ function ritaKontor() {
     ctx.fillStyle = "#3f8f3f";
     ctx.fillRect(78, 160, 64, 40);
 
-    drawCharacter(400, 195, 130, sikaelImage);
+    ritaKungastol(400, 215);
+    drawCharacter(400, 195, 130, sikaelKontorBild(kontorTid));
 
     // Skrivbord med datorn vriden mot Sikael
     ctx.fillStyle = "#7a5230";
