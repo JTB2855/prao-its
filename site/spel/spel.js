@@ -67,7 +67,6 @@ const bossLunchLines = [
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
 const sekunderPerRuta = 0.5;
-const sikaelKnaTid = sikaelSjunkRutor * sekunderPerRuta;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -587,6 +586,15 @@ sikaelSurImage.src = "images/sikael-sur.png";
 const sikaelDeterminationImage = new Image();
 sikaelDeterminationImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael i DETERMINATION.");
 sikaelDeterminationImage.src = "images/sikael-determination.png";
+const sikaelArg2Image = new Image();
+sikaelArg2Image.onerror = () => console.error("Kunde inte ladda bilden sikael-arg-2.png.");
+sikaelArg2Image.src = "images/sikael-arg-2.png";
+const sikaelArg3Image = new Image();
+sikaelArg3Image.onerror = () => console.error("Kunde inte ladda bilden sikael-arg-3.png.");
+sikaelArg3Image.src = "images/sikael-arg-3.png";
+// När Sikael är besegrad är han först jättearg, sedan mindre och mindre arg. Sedan faller han ihop.
+const sikaelArgaBilder = [sikaelDeterminationImage, sikaelArg2Image, sikaelArg3Image];
+const sikaelKnaTid = (sikaelArgaBilder.length + sikaelSjunkRutor) * sekunderPerRuta;
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1683,10 +1691,15 @@ function drawSikael(kneeling, context = ctx) {
     }
 }
 
-// andel går från 0 (står) till 1 (på knä). En ruta i taget visas, hackigt som i Undertale.
-function ritaSikaelSomFaller(andel) {
-    const ruta = Math.min(sikaelSjunkRutor - 1, Math.floor(andel * sikaelSjunkRutor));
-    ritaSikaelRuta(ruta);
+// tid är sekunder sedan sista slaget. Först visas de arga bilderna, sedan rutorna
+// där han faller ihop. En bild i taget, hackigt som i Undertale.
+function ritaSikaelSomFaller(tid) {
+    const steg = Math.floor(tid / sekunderPerRuta);
+    if (steg < sikaelArgaBilder.length) {
+        drawCharacter(400, 145, 190, sikaelArgaBilder[steg]);
+        return;
+    }
+    ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, steg - sikaelArgaBilder.length));
 }
 
 // Ritar en av rutorna i sikael-sjunk.png. Ruta 0 är först, sedan åt höger och nästa rad.
@@ -2310,7 +2323,7 @@ function drawBoss() {
         return;
     }
     if (gameState === "boss-farewell") {
-        ritaSikaelSomFaller(boss.kneelTimer / sikaelKnaTid);
+        ritaSikaelSomFaller(boss.kneelTimer);
     } else {
         drawSikael(false);
     }
