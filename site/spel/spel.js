@@ -13,6 +13,9 @@ let pickupMessageTime = 0;
 let pickupMessage = "";
 let kontorTid = 0;
 const kontorVantetid = 1;
+// Skärmen blinkar två gånger innan en strid börjar. Under tiden går det inte att trycka.
+const blinkLangd = 0.5;
+let blinkTid = 0;
 // Korridoren är större än skärmen: en del åt höger och en del uppåt. Kameran följer Char.
 const korridorHoger = { x: -100, y: 365, bredd: 1500, hojd: 140 };
 const korridorUpp = { x: 1260, y: -900, bredd: 140, hojd: 1405 };
@@ -617,6 +620,7 @@ window.addEventListener("keydown", (e) => {
     if (e.key.startsWith("Arrow") || e.key.toLowerCase() === "z") {
         e.preventDefault();
     }
+    if (blinkTid > 0) return;
     if (gameState.startsWith("boss-")) {
         if (gameState === "boss-defend" && boss.heartMode === "blue" &&
             e.key === bossGravity[boss.gravityDirection].jumpKey && !e.repeat) {
@@ -733,6 +737,7 @@ function startBoss(retry = false) {
     boss.message = "Sikael: Du får inte ta mitt kaffe";
     selectedButton = 0;
     gameState = "boss-intro";
+    if (!retry) blinkTid = blinkLangd;
 }
 
 function handleBossChoice() {
@@ -1256,6 +1261,10 @@ function arInne(ruta, x, y) {
 
 function update(seconds = 1 / 60) {
     pickupMessageTime = Math.max(0, pickupMessageTime - seconds);
+    if (blinkTid > 0) {
+        blinkTid = Math.max(0, blinkTid - seconds);
+        return;
+    }
     if (gameState.startsWith("boss-")) {
         updateBoss(seconds);
         return;
@@ -1271,6 +1280,7 @@ function update(seconds = 1 / 60) {
             heartX = 400;
             heartY = 500;
             selectedButton = 0;
+            blinkTid = blinkLangd;
         }
     }
 
@@ -2378,7 +2388,18 @@ function gameLoop(time) {
     previousTime = time;
     update(seconds);
     draw();
+    ritaBlink();
     requestAnimationFrame(gameLoop);
+}
+
+// Tiden delas i fyra delar: av, på, av, på. "Av" är en svart skärm över striden.
+function ritaBlink() {
+    if (blinkTid <= 0) return;
+    const del = Math.floor((blinkLangd - blinkTid) / (blinkLangd / 4));
+    if (del % 2 === 0) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
 gameLoop();

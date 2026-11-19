@@ -149,7 +149,9 @@
 - 2026-11-19 – gjord: "man skulle se hans jobbrum som alla andra platser, uppifrån. och så får man se char i rummet och sikael halvt bakom sitt skrivbord". Kontoret är nu ett vanligt rum uppifrån; Char kommer in nerifrån och kan gå. Efter 1 sekund (`kontorVantetid`) börjar striden. Ersätter den första versionen där kontoret visades framifrån.
 - 2026-11-19 – gjord: Snabbflytt med siffertangenter för att testa: "1 är vid flowie, 2 vardagsrum, 3 kök, 4 UTANFÖR sikaels kontor". Fungerar bara när man går omkring, inte i samtal eller strid.
 - 2026-11-19 – gjord: Eleven skrev själv koden för en golvlampa i vardagsrummet: fot, stång, lampskärm och gult ljus.
-- 2026-11-19 – gjord (väntar på test): "byta ut pajbitarna mot egen ritade pajbitar" – tre pajbitar med pumpafyllning, pajskal och grädde, ritade med pixlar på bänken i köket. Ersätter pajbilden.
+- 2026-11-19 – gjord: "byta ut pajbitarna mot egen ritade pajbitar" – tre pajbitar med pumpafyllning, pajskal och grädde, ritade med pixlar på bänken i köket. Ersätter pajbilden.
+- 2026-11-19 – ersatt (vitt blev av/på): "innan menyn kommer upp så blinkar det till 2 snabba gånger innan man kan göra val. som i spelet innan man ska fighta nån". Skärmen blinkar vitt två gånger på en halv sekund när mötet med Flowie och striden med Sikael börjar. Under blinkningen går det inte att trycka. Ingen blinkning vid nytt försök mot Sikael.
+- 2026-11-19 – gjord: "den blinkar vitt, jag menade att mennyn blinkar på och av snabbt" – stridsskärmen blinkar nu av (svart) och på två gånger i stället för vitt.
 - 2026-11-19 – ej gjord: Eleven gör några stillbilder: Sikael sitter, tittar upp, sedan börjar striden. Tills dess (val "a"): vanliga Sikael-bilden bakom skrivbordet, bara överkroppen syns. Bilderna sparas som `sikael-sitter-1.png`, `-2`, ...
 - 2026-11-19 – gjord: "eftersom vi tog hans kaffe tidigare vill han fightas". Utan kaffet: "dörren förblir låst" – texten "Dörren är låst." visas.
 - 2026-11-19 – gjord: "Min karaktär kan heta Char" – CHAR i striden i stället för CHARA.
