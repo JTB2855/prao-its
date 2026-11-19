@@ -6,10 +6,7 @@ const bgImage = new Image();
 bgImage.src = "images/bg_1.png";
 
 const kitchen = { x: 98, y: 100, width: 604, height: 500 };
-const pieImage = new Image();
-pieImage.onerror = () => console.error("Kunde inte ladda pajbilden.");
-pieImage.src = "images/pumpkin-pie.png";
-const pie = { x: 410, y: 328, collected: false };
+const pie = { x: 410, y: 300, collected: false };
 const kaffe = { x: 500, y: 318, collected: false };
 let pieCount = 0;
 let pickupMessageTime = 0;
@@ -275,18 +272,18 @@ const bossHardPatterns = [
         { time: 7.3, type: "slam", direction: "left" }
     ] },
     { name: "Stavar uppifrån och nerifrån", mode: "red", width: 360, duration: 9, events: [
-        { time: 0.4, type: "vertical-wall", gapX: 320, speed: 240 },
-        { time: 1.05, type: "vertical-wall", gapX: 400, speed: -240 },
-        { time: 1.7, type: "vertical-wall", gapX: 480, speed: 240 },
-        { time: 2.35, type: "vertical-wall", gapX: 400, speed: -240 },
-        { time: 3.0, type: "vertical-wall", gapX: 320, speed: 240 },
-        { time: 3.65, type: "vertical-wall", gapX: 400, speed: -240 },
-        { time: 4.3, type: "vertical-wall", gapX: 480, speed: 240 },
-        { time: 4.95, type: "vertical-wall", gapX: 400, speed: -240 },
-        { time: 5.6, type: "vertical-wall", gapX: 320, speed: 240 },
-        { time: 6.25, type: "vertical-wall", gapX: 400, speed: -240 },
-        { time: 6.9, type: "vertical-wall", gapX: 480, speed: 240 },
-        { time: 7.55, type: "vertical-wall", gapX: 400, speed: -240 }
+        { time: 0.4, type: "vertical-wall", gapX: 320, speed: 200 },
+        { time: 1.05, type: "vertical-wall", gapX: 400, speed: -200 },
+        { time: 1.7, type: "vertical-wall", gapX: 480, speed: 200 },
+        { time: 2.35, type: "vertical-wall", gapX: 400, speed: -200 },
+        { time: 3.0, type: "vertical-wall", gapX: 320, speed: 200 },
+        { time: 3.65, type: "vertical-wall", gapX: 400, speed: -200 },
+        { time: 4.3, type: "vertical-wall", gapX: 480, speed: 200 },
+        { time: 4.95, type: "vertical-wall", gapX: 400, speed: -200 },
+        { time: 5.6, type: "vertical-wall", gapX: 320, speed: 200 },
+        { time: 6.25, type: "vertical-wall", gapX: 400, speed: -200 },
+        { time: 6.9, type: "vertical-wall", gapX: 480, speed: 200 },
+        { time: 7.55, type: "vertical-wall", gapX: 400, speed: -200 }
     ] },
     { name: "Laserkarusellen", mode: "red", width: 300, top: 300, duration: 9, events: [
         { time: 0.3, type: "ring-cannon", angle: 0 },
@@ -530,6 +527,20 @@ const kaffeFarger = {
     W: "#ffffff", // mugg
     C: "#5a3a1e"  // kaffe
 };
+
+const pajFarger = {
+    G: "#fff6e0", // grädde
+    U: "#e07b24", // pumpafyllning
+    K: "#c98a3c"  // pajskal
+};
+const pajbitPixlar = [
+    ".......G.",
+    "......GGG",
+    "....UUUUK",
+    "..UUUUUUK",
+    "UUUUUUUUK",
+    "KKKKKKKKK"
+];
 const kaffePixlar = [
     "..A..A..",
     ".A..A...",
@@ -1715,6 +1726,17 @@ function ritaVardagsrum() {
         ctx.fillRect(vaxtX - 9, 104, 18, 14);
     }
 
+
+    // Ritning av golvklocka
+        ctx.fillStyle = "#cab600";
+    ctx.fillRect(85, 378, 40, 40);
+    ctx.fillStyle = "#0b0907";
+    ctx.fillRect(102, 400, 7, 100);
+    ctx.fillStyle = "#47290f";
+    ctx.fillRect(90, 500, 30, 10);
+    ctx.fillStyle = "#573b21";
+    ctx.fillRect(80, 360, 50, 50);
+
     // Golvklocka
     ctx.fillStyle = "#5a3a1e";
     ctx.fillRect(670, 40, 46, 120);
@@ -1725,6 +1747,8 @@ function ritaVardagsrum() {
     ctx.fillRect(692, 64, 10, 2);
     ctx.fillStyle = "#d4a017";
     ctx.fillRect(689, 100, 8, 40);
+    ctx.fillStyle = "#d4a017";
+    ctx.fillRect(685, 140, 15, 10);
 
     // Rund trasmatta
     const mattFarger = ["#c94f4f", "#f0d68a", "#5b8fc9", "#f0d68a", "#c94f4f"];
@@ -1811,6 +1835,13 @@ function ritaKok() {
     ctx.fillRect(555, 318, 70, 30);
 }
 
+// Tre pajbitar på bänken, en för varje paj man får.
+function ritaPajbitar() {
+    for (const flytt of [-35, 0, 35]) {
+        ritaPixlar(pajbitPixlar, pajFarger, pie.x + flytt, pie.y, 3, false);
+    }
+}
+
 function ritaKaffe() {
     ritaPixlar(kaffePixlar, kaffeFarger, kaffe.x, kaffe.y, 3, false);
     ctx.fillStyle = "#3a2a10";
@@ -1844,7 +1875,7 @@ function drawKitchen() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
     ritaKok();
-    if (!pie.collected) drawCharacter(pie.x, pie.y, 48, pieImage);
+    if (!pie.collected) ritaPajbitar();
     if (!kaffe.collected) ritaKaffe();
     ritaBarn(playerX, playerY, currentDirection);
     ritaMeddelande();
