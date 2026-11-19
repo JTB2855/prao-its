@@ -631,6 +631,14 @@ window.addEventListener("keydown", (e) => {
         return;
     }
     
+    // Snabbflytt för att testa: 1 Flowie, 2 vardagsrum, 3 kök, 4 utanför Sikaels kontor
+    if (gameState === "exploration" && !e.repeat) {
+        if (e.key === "1") flyttaTillRum(1, rooms[1].spawnX, rooms[1].spawnY);
+        if (e.key === "2") flyttaTillRum(2, rooms[2].spawnX, rooms[2].spawnY);
+        if (e.key === "3") flyttaTillRum(3, rooms[3].spawnX, rooms[3].spawnY);
+        if (e.key === "4") flyttaTillRum(6, korridorUpp.x + 70, korridorUpp.y + 60);
+    }
+
     // Fight-meny navigation
     if (gameState === "fight") {
         if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
@@ -660,6 +668,12 @@ window.addEventListener("keydown", (e) => {
         }
     }
 });
+
+function flyttaTillRum(rum, x, y) {
+    currentRoom = rum;
+    playerX = x;
+    playerY = y;
+}
 
 window.addEventListener("keyup", (e) => {
     keys[e.key] = false;
