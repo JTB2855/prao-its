@@ -584,6 +584,9 @@ sikaelGladImage.src = "images/sikael-glad.png";
 const sikaelSurImage = new Image();
 sikaelSurImage.onerror = () => console.error("Kunde inte ladda bilden när Sikael är sur.");
 sikaelSurImage.src = "images/sikael-sur.png";
+const sikaelDeterminationImage = new Image();
+sikaelDeterminationImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael i DETERMINATION.");
+sikaelDeterminationImage.src = "images/sikael-determination.png";
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1674,8 +1677,9 @@ function drawSikael(kneeling, context = ctx) {
     if (kneeling) {
         ritaSikaelRuta(sikaelSjunkRutor - 1, context);
     } else {
-        // Under fighten är Sikael sur
-        drawCharacter(400, 145, 190, sikaelSurImage, context);
+        // Under fighten är Sikael sur, och ännu argare i DETERMINATION
+        const bild = boss.determination ? sikaelDeterminationImage : sikaelSurImage;
+        drawCharacter(400, 145, 190, bild, context);
     }
 }
 
