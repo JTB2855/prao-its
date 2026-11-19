@@ -134,6 +134,20 @@
 - Status: **Spelbar egen version – eleven testar likheten med förebilden**
 
 ## Grafikk
+- 2026-11-19 – ersatt: "klippa ut flera bilder och koppla det till spelet så det verkligen ser ut som att hon går" – gånganimation för Chara i alla fyra riktningar, utifrån en bild med flera stillbilder. Ersatt eftersom bilderna tillhör Undertale och eleven inte vill rita 4×8 bilder.
+- 2026-11-19 – aktuell: Eleven valde "a": agenten ritar en egen pixelfigur med kod som huvudperson, med gånganimation. Eleven bestämmer utseendet.
+- 2026-11-19 – ersatt: Egen figur med kort svart spretigt hår, gul mössa med tofs, grön jacka, brun ryggsäck, mörkblå byxor och röda skor. Ritas med kod; benen växlar när man går; åt vänster spegelvänds sidobilden.
+- 2026-11-19 – gjord (väntar på test): "ta bort väskan, mössan och göra den mer 'barnslig' så att den är i typ pyjamas och håller i en snuttefilt. längre hår också" – långt svart hår, mintgrön pyjamas med vita prickar, barfota, lila snuttefilt i handen. färgerna valde agenten.
+- 2026-11-19 – gjord (väntar på test): "randig tröja, istället för prickar, och annan färg på byxorna" – mintgrön tröja med vita ränder, gula byxor. Resten var bra.
+- 2026-11-19 – aktuell: Eleven frågar hur Farmor och Flowie ska göras om.
+- 2026-11-19 – gjord (väntar på test): Egen Farmor ritad med kod. Eleven tänkte först på "farmor från cookie clicker", men valde ett eget förslag: vitt hår i knut med röd blomma, runda glasögon, rosiga kinder, senapsgul kofta, mörkröd kjol, tofflor och pumpapaj i händerna. Ersätter Farmor-bilderna i rummet och vid räddningen.
+- 2026-11-19 – ej gjord: Egen Flowie, en annan sorts blomma med eget ansikte.
+- 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.
+- 2026-11-19 – gjord (väntar på test): Efter sista slaget sjunker Sikael ner och stående bilden tonar över till knäbilden under 1,2 sekunder. Sedan kommer replikerna. Stoftet ("perishgrejen") från knäbilden är kvar som förut – "den är väldigt fin och jag vill ha kvar den".
+- 2026-11-19 – aktuell: Övergången fungerar, men eleven vill ha "som i undertale, att det är långsamma frames som till slut blir en hel film" – hackiga steg i stället för mjuk toning.
+- 2026-11-19 – ej gjord: Eleven ska försöka göra fler mellanbilder av Sikael i ChatGPT senare (sparas som `sikael-sjunk-1.png`, `-2`, ...). Tills dess används den mjuka övergången. Copilot fungerade inte och Gemini gjorde inte pixelbilder.
+- 2026-11-19 – aktuell: "nu måste jag fixa flowie också".
+- 2026-11-19 – ej gjord: "jag behöver i så fall byta ut flowie och farmor också eftersom de är från undertale" – egna figurer i stället för Undertale-bilderna.
 - 2026-11-17 – gjord: "Använd den här bilden som farmor" – den bifogade bilden används vid räddningen och i Farmors rum.
 - 2026-11-17 – gjord: "Kan du använda den här som hjärta?" – den bifogade röda hjärtbilden används i striden, med bakgrunden borttagen.
 - 2026-11-17 – gjord: "använd den här som flowie bild" – den bifogade bilden används i rummet och i stridsscenen.

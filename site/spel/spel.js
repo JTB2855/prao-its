@@ -23,7 +23,7 @@ const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
     patternIndex: 0, nextEvent: 0, heartMode: "red", gravitySpeed: 0,
-    jumpRequested: false, lunchEaten: false, lunchLine: 0, farewellLine: 0,
+    jumpRequested: false, lunchEaten: false, lunchLine: 0, farewellLine: 0, kneelTimer: 0,
     determination: false, phaseTurn: 0, lowHealthAttackUsed: false,
     gravityDirection: "down", platforms: []
 };
@@ -51,6 +51,8 @@ const bossLunchLines = [
     "Sikael äter coop-lunch med trocadero! +250 hälsa",
     "DETERMINATION"
 ];
+// Sekunder det tar för Sikael att sjunka ner på knä.
+const sikaelKnaTid = 1.2;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -303,17 +305,104 @@ const bossHardPatterns = [
     ] }
 ];
 
-// Ladda character stillframes
-const charaImages = {
-    0: new Image(), // upp
-    1: new Image(), // höger
-    2: new Image(), // ner
-    3: new Image()  // vänster
+// Barnet (huvudpersonen) ritas med pixlar. Varje bokstav är en färg, punkt betyder genomskinligt.
+const barnFarger = {
+    H: "#1a1a1a", // hår
+    S: "#f1c9a0", // hud
+    O: "#000000", // ögon
+    P: "#8fd9b6", // tröja
+    V: "#ffffff", // ränder på tröjan
+    B: "#f2d16b", // byxor
+    F: "#c9a7e8"  // snuttefilt
 };
-charaImages[0].src = "images/chara upp.png";
-charaImages[1].src = "images/chara_höger_1.png";
-charaImages[2].src = "images/chara ner.png";
-charaImages[3].src = "images/chara vänster.png";
+const barnPixel = 4;
+const barnStegPerSekund = 8;
+
+const barnKroppNer = [
+    "................",
+    ".....HHHHHH.....",
+    "....HHHHHHHH....",
+    "...HHHHHHHHHH...",
+    "...HHSSSSSSHH...",
+    "...HSOSSSSOSH...",
+    "...HSSSSSSSSH...",
+    "...HHSSSSSSHH...",
+    "...HPPPPPPPPH...",
+    "..VVVVVVVVVVVV..",
+    "..PPPPPPPPPPPP..",
+    "..VVVVVVVVVVVV..",
+    ".FSPPPPPPPPPPS..",
+    "FFF.VVVVVVVV...."
+];
+const barnKroppUpp = [
+    "................",
+    ".....HHHHHH.....",
+    "....HHHHHHHH....",
+    "...HHHHHHHHHH...",
+    "...HHHHHHHHHH...",
+    "...HHHHHHHHHH...",
+    "...HHHHHHHHHH...",
+    "...HHHHHHHHHH...",
+    "...HHHHHHHHHH...",
+    "..PPHHHHHHHHPP..",
+    "..VVVVVVVVVVVV..",
+    "..PPPPPPPPPPPP..",
+    "..SVVVVVVVVVVSF.",
+    "....PPPPPPPP.FFF"
+];
+// Sidan ritas åt höger. Åt vänster spegelvänds den.
+const barnKroppSida = [
+    "................",
+    "......HHHHHH....",
+    ".....HHHHHHHH...",
+    "....HHHHHHHHH...",
+    "....HHHHSSSSS...",
+    "....HHHSSSOSS...",
+    "....HHHSSSSSSS..",
+    "....HHHHSSSS....",
+    "....HHHPPPP.....",
+    "....HHVVVVV.....",
+    "......PPPPP.....",
+    "......VVVVV.....",
+    "......PPPPSF....",
+    "......VVVVVFF..."
+];
+
+const benFramSta = [
+    "....BBB..BBB....",
+    "....BBB..BBB....",
+    "....BBB..BBB....",
+    "...SSSS..SSSS..."
+];
+const benFramSteg1 = [
+    "....BBB..BBB....",
+    "....BBB..BBB....",
+    "...SSSS..BBB....",
+    ".........SSSS..."
+];
+const benFramSteg2 = [
+    "....BBB..BBB....",
+    "....BBB..BBB....",
+    "....BBB..SSSS...",
+    "...SSSS........."
+];
+const benSidaSta = [
+    "......BBBB......",
+    "......BBBB......",
+    "......BBBB......",
+    "......SSSSS....."
+];
+const benSidaSteg = [
+    "......BBBB......",
+    ".....BB..BB.....",
+    "....BB....BB....",
+    "...SSS....SSS..."
+];
+// Gångens bilder i ordning. Bild nummer 1 är när barnet står still.
+const benFram = [benFramSteg1, benFramSta, benFramSteg2, benFramSta];
+const benSida = [benSidaSteg, benSidaSta];
+let spelarenGar = false;
+let gangTid = 0;
 
 // Fight-spel bilder
 const heartImage = new Image();
@@ -324,9 +413,48 @@ const floweyImage = new Image();
 floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
 floweyImage.src = "images/flowie.png";
 
-const farmorImage = new Image();
-farmorImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor.");
-farmorImage.src = "images/farmor.png";
+// Farmor ritas med pixlar, precis som barnet.
+const farmorFarger = {
+    W: "#f4f4f4", // vitt hår
+    R: "#e63946", // blomma i håret
+    S: "#f1c9a0", // hud
+    G: "#5a3e2b", // glasögon
+    O: "#000000", // ögon
+    K: "#f28b82", // rosiga kinder
+    C: "#d4a017", // kofta
+    D: "#8a6a00", // knappar
+    J: "#7b1e2b", // kjol
+    T: "#8fb3e8", // tofflor
+    P: "#c98a3c", // pajens kant
+    U: "#e07b24"  // pumpafyllning
+};
+const farmorPixlar = [
+    "......WWWR......",
+    ".....WWWWWR.....",
+    "......WWWW......",
+    "....WWWWWWWW....",
+    "...WWSSSSSSWW...",
+    "...WGGGSSGGGW...",
+    "...WGOGSSGOGW...",
+    "...WGGGSSGGGW...",
+    "....KSSSSSSK....",
+    ".....SSSSSS.....",
+    "....CCCCCCCC....",
+    "...CCCCDCCCCC...",
+    "..CCCCCCCCCCCC..",
+    "..CCCCCDCCCCCC..",
+    "..CSPPPPPPPPSC..",
+    "..CCUUUUUUUUCC..",
+    "...JPPPPPPPPJ...",
+    "...JJJJJJJJJJ...",
+    "...JJJJJJJJJJ...",
+    "..JJJJJJJJJJJJ..",
+    "..JJJJJJJJJJJJ..",
+    "..JJJJJJJJJJJJ..",
+    "...TTTT..TTTT..."
+];
+const farmorPixelRum = 5;
+const farmorPixelRaddning = 7;
 
 const sikaelImage = new Image();
 sikaelImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael.");
@@ -334,11 +462,6 @@ sikaelImage.src = "images/sikael.png";
 const sikaelKneelingImage = new Image();
 sikaelKneelingImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael på knä.");
 sikaelKneelingImage.src = "images/sikael-kna.png";
-
-const farmorRescueImage = new Image();
-farmorRescueImage.onerror = () => console.error("Kunde inte ladda bilden av Farmor vid räddningen.");
-farmorRescueImage.src = "images/farmor-raddning.png";
-const farmorRoomSize = 110;
 
 const flowieFaces = [floweyImage];
 for (const file of ["Flowey_battle_fatal_Genocide.webp", "flower-flowers.gif", "Flowey_battle_laugh.png"]) {
@@ -515,6 +638,7 @@ function handleBossChoice() {
     } else if (gameState === "boss-intro") {
         startBossDefense();
     } else if (gameState === "boss-farewell") {
+        if (boss.kneelTimer < sikaelKnaTid) return;
         boss.farewellLine++;
         if (boss.farewellLine < bossFarewellLines.length) {
             boss.message = bossFarewellLines[boss.farewellLine];
@@ -565,6 +689,7 @@ function handleBossChoice() {
             boss.projectiles = [];
             boss.platforms = [];
             boss.farewellLine = 0;
+            boss.kneelTimer = 0;
             boss.message = bossFarewellLines[0];
             gameState = "boss-farewell";
         } else {
@@ -915,6 +1040,10 @@ function updateBossDefense(seconds) {
 }
 
 function updateBoss(seconds) {
+    if (gameState === "boss-farewell") {
+        boss.kneelTimer = Math.min(sikaelKnaTid, boss.kneelTimer + seconds);
+        return;
+    }
     if (gameState === "boss-dying") {
         bossDeath.timer = Math.min(bossDeath.duration, bossDeath.timer + seconds);
         if (bossDeath.timer >= bossDeath.duration) gameState = "boss-won";
@@ -1045,6 +1174,8 @@ function update(seconds = 1 / 60) {
             newX += speed;
             currentDirection = 1;
         }
+        spelarenGar = keys["ArrowUp"] || keys["ArrowDown"] || keys["ArrowLeft"] || keys["ArrowRight"];
+        gangTid = spelarenGar ? gangTid + seconds : 0;
 
         if (currentRoom === 2) {
             if (canWalkInFarmorRoom(newX, playerY)) playerX = newX;
@@ -1189,7 +1320,7 @@ function draw() {
         if (rooms[currentRoom].npc === "Flowie") {
             drawCharacter(npcX, npcY, 64, floweyImage);
         } else if (rooms[currentRoom].npc === "Farmor") {
-            drawCharacter(npcX, npcY, farmorRoomSize, farmorImage);
+            ritaPixlar(farmorPixlar, farmorFarger, npcX, npcY, farmorPixelRum, false);
         } else {
             ctx.fillStyle = "#ff0000";
             ctx.fillRect(npcX - 15, npcY - 15, 30, 30);
@@ -1201,14 +1332,7 @@ function draw() {
         ctx.fillText(rooms[currentRoom].npc, npcX, npcY + labelOffset);
     }
 
-    // Rita Chara
-    const charaImg = charaImages[currentDirection];
-    if (charaImg.complete) {
-        ctx.drawImage(
-            charaImg,
-            playerX - playerSize / 2, playerY - playerSize / 2, playerSize, playerSize
-        );
-    }
+    ritaBarn(playerX, playerY, currentDirection);
 
     // HP-display
     ctx.fillStyle = "#fff";
@@ -1300,12 +1424,57 @@ function drawCharacter(x, y, size, image, context = ctx) {
     context.restore();
 }
 
+// Riktning: 0 = upp, 1 = höger, 2 = ner, 3 = vänster
+function ritaBarn(x, y, riktning) {
+    const franSidan = riktning === 1 || riktning === 3;
+    let kropp = barnKroppSida;
+    if (riktning === 0) kropp = barnKroppUpp;
+    if (riktning === 2) kropp = barnKroppNer;
+    const benLista = franSidan ? benSida : benFram;
+    const ben = spelarenGar
+        ? benLista[Math.floor(gangTid * barnStegPerSekund) % benLista.length]
+        : benLista[1];
+    const rader = kropp.concat(ben);
+    ritaPixlar(rader, barnFarger, x, y, barnPixel, riktning === 3);
+}
+
+// Ritar en pixelfigur med mitten i (x, y). Spegla = vränd åt andra hållet.
+function ritaPixlar(rader, farger, x, y, pixel, spegla) {
+    const bredd = rader[0].length;
+    ctx.save();
+    ctx.translate(x, y);
+    if (spegla) ctx.scale(-1, 1);
+    for (let rad = 0; rad < rader.length; rad++) {
+        for (let kolumn = 0; kolumn < rader[rad].length; kolumn++) {
+            const farg = farger[rader[rad][kolumn]];
+            if (!farg) continue;
+            ctx.fillStyle = farg;
+            ctx.fillRect(
+                (kolumn - bredd / 2) * pixel,
+                (rad - rader.length / 2) * pixel,
+                pixel, pixel
+            );
+        }
+    }
+    ctx.restore();
+}
+
 function drawSikael(kneeling, context = ctx) {
     if (kneeling && sikaelKneelingImage.complete && sikaelKneelingImage.naturalWidth > 0) {
         drawCharacter(400, 165, 150, sikaelKneelingImage, context);
     } else {
         drawCharacter(400, 145, 190, sikaelImage, context);
     }
+}
+
+// andel går från 0 (står) till 1 (på knä). Stående bilden sjunker och tonar bort.
+function ritaSikaelSomFaller(andel) {
+    ctx.save();
+    ctx.globalAlpha = 1 - andel;
+    drawCharacter(400, 145 + 20 * andel, 190, sikaelImage);
+    ctx.globalAlpha = andel;
+    drawCharacter(400, 165, 150, sikaelKneelingImage);
+    ctx.restore();
 }
 
 function drawDialogue() {
@@ -1337,8 +1506,8 @@ function drawFarmorRoom() {
     if (farmorBackground.complete && farmorBackground.naturalWidth > 0) {
         ctx.drawImage(farmorBackground, 0, 0, canvas.width, canvas.height);
     }
-    drawCharacter(rooms[2].npcX, rooms[2].npcY, farmorRoomSize, farmorImage);
-    drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
+    ritaPixlar(farmorPixlar, farmorFarger, rooms[2].npcX, rooms[2].npcY, farmorPixelRum, false);
+    ritaBarn(playerX, playerY, currentDirection);
     ctx.fillStyle = "#000";
     ctx.fillRect(12, 10, 200, 30);
     ctx.fillStyle = "#fff";
@@ -1358,7 +1527,7 @@ function drawKitchen() {
         ctx.drawImage(kitchenBackground, kitchen.x, kitchen.y, kitchen.width, kitchen.height);
     }
     if (!pie.collected) drawCharacter(pie.x, pie.y, 48, pieImage);
-    drawCharacter(playerX, playerY, playerSize, charaImages[currentDirection]);
+    ritaBarn(playerX, playerY, currentDirection);
     if (pickupMessageTime > 0) {
         ctx.fillStyle = "#000";
         ctx.fillRect(100, 30, 600, 55);
@@ -1594,7 +1763,11 @@ function drawBoss() {
         ctx.restore();
         return;
     }
-    drawSikael(gameState === "boss-farewell");
+    if (gameState === "boss-farewell") {
+        ritaSikaelSomFaller(boss.kneelTimer / sikaelKnaTid);
+    } else {
+        drawSikael(false);
+    }
     ctx.fillStyle = "#fff";
     ctx.fillText("SIKAEL  HÄLSA " + boss.hp + "/" + boss.maxHP, 400, 265);
     if (boss.determination) {
@@ -1614,7 +1787,9 @@ function drawBoss() {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.strokeRect(100, 350, 600, 100);
-        ctx.fillText(boss.farewellLine < bossFarewellLines.length - 1 ? "Z: nästa" : "Z: fortsätt", 400, 410);
+        if (boss.kneelTimer >= sikaelKnaTid) {
+            ctx.fillText(boss.farewellLine < bossFarewellLines.length - 1 ? "Z: nästa" : "Z: fortsätt", 400, 410);
+        }
     } else if (gameState === "boss-lunch") {
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
@@ -1719,7 +1894,7 @@ function drawAttackScene() {
 
     const faceIndex = dialogueIndex >= 5 ? 3 : dialogueIndex === 4 ? 2 : dialogueIndex === 3 ? 1 : 0;
     if (gameState === "rescue") {
-        drawCharacter(400, 110, 170, farmorRescueImage);
+        ritaPixlar(farmorPixlar, farmorFarger, 400, 110, farmorPixelRaddning, false);
     } else {
         drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
     }
