@@ -5,20 +5,15 @@ const ctx = canvas.getContext("2d");
 const bgImage = new Image();
 bgImage.src = "images/bg_1.png";
 
-const farmorBackground = new Image();
-farmorBackground.onerror = () => console.error("Kunde inte ladda bakgrunden i Farmors hus.");
-farmorBackground.src = "images/farmors-rum.png";
-
-const kitchenBackground = new Image();
-kitchenBackground.onerror = () => console.error("Kunde inte ladda köksbilden.");
-kitchenBackground.src = "images/farmors-kok.png";
 const kitchen = { x: 98, y: 100, width: 604, height: 500 };
 const pieImage = new Image();
 pieImage.onerror = () => console.error("Kunde inte ladda pajbilden.");
 pieImage.src = "images/pumpkin-pie.png";
 const pie = { x: 410, y: 328, collected: false };
+const kaffe = { x: 500, y: 318, collected: false };
 let pieCount = 0;
 let pickupMessageTime = 0;
+let pickupMessage = "";
 const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
@@ -516,6 +511,31 @@ const farmorPixlar = [
 ];
 const farmorPixelRum = 5;
 const farmorPixelRaddning = 7;
+// När Farmor sitter är överkroppen densamma, men kjolen ligger över knäna.
+const farmorSitterPixlar = farmorPixlar.slice(0, 17).concat([
+    "..JJJJJJJJJJJJ..",
+    "..JJJJJJJJJJJJ..",
+    "....JJ....JJ....",
+    "....JJ....JJ....",
+    "...TTT....TTT..."
+]);
+
+const kaffeFarger = {
+    A: "#dddddd", // ånga
+    W: "#ffffff", // mugg
+    C: "#5a3a1e"  // kaffe
+};
+const kaffePixlar = [
+    "..A..A..",
+    ".A..A...",
+    "..A..A..",
+    "WWWWWW..",
+    "WCCCCWWW",
+    "WWWWWW.W",
+    "WWWWWWWW",
+    "WWWWWW..",
+    ".WWWW..."
+];
 
 const sikaelImage = new Image();
 sikaelImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael.");
@@ -1253,6 +1273,12 @@ function update(seconds = 1 / 60) {
             if (!pie.collected && Math.abs(playerX - pie.x) < 45 && playerY - playerSize / 2 <= 370) {
                 pie.collected = true;
                 pieCount += 3;
+                pickupMessage = "Du fick 3 pumpapajer!";
+                pickupMessageTime = 4;
+            }
+            if (!kaffe.collected && Math.abs(playerX - kaffe.x) < 35 && playerY - playerSize / 2 <= 370) {
+                kaffe.collected = true;
+                pickupMessage = "Du tog Sikaels kaffe!";
                 pickupMessageTime = 4;
             }
             if (playerY - playerSize / 2 > canvas.height) {
@@ -1556,15 +1582,171 @@ function drawDialogue() {
     ctx.restore();
 }
 
+// Golv med brädor. Används i vardagsrummet och i gångarna.
+function ritaTragolv(x, y, bredd, hojd) {
+    ctx.fillStyle = "#b07a45";
+    ctx.fillRect(x, y, bredd, hojd);
+    ctx.fillStyle = "#946232";
+    for (let linjeY = y + 28; linjeY < y + hojd; linjeY += 28) {
+        ctx.fillRect(x, linjeY, bredd, 3);
+    }
+}
+
+// Vardagsrummet: gången uppåt leder till köket, öppningen till höger leder till Sikael.
+function ritaVardagsrum() {
+    // Blommig tapet
+    ctx.fillStyle = "#e9d8b4";
+    ctx.fillRect(46, 30, 704, 120);
+    for (let x = 70; x < 750; x += 40) {
+        for (let y = 50; y < 145; y += 35) {
+            ctx.fillStyle = "#d77a8a";
+            ctx.fillRect(x, y, 6, 6);
+            ctx.fillStyle = "#7aa86a";
+            ctx.fillRect(x + 2, y + 6, 2, 6);
+        }
+    }
+
+    ritaTragolv(46, 150, 704, 395);
+    ritaTragolv(115, 0, 99, 150);
+    ritaTragolv(750, 365, 50, 140);
+
+    // Golvlist och dörrkarmar
+    ctx.fillStyle = "#6b4423";
+    ctx.fillRect(46, 146, 69, 6);
+    ctx.fillRect(214, 146, 536, 6);
+    ctx.fillRect(109, 0, 6, 152);
+    ctx.fillRect(214, 0, 6, 152);
+    ctx.fillRect(746, 359, 10, 6);
+    ctx.fillRect(746, 505, 10, 6);
+
+    // Fönster med gardiner och krukväxter
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(300, 50, 130, 85);
+    ctx.fillStyle = "#9fd3f0";
+    ctx.fillRect(306, 56, 56, 73);
+    ctx.fillRect(368, 56, 56, 73);
+    ctx.fillStyle = "#f2a7c3";
+    ctx.fillRect(288, 44, 18, 96);
+    ctx.fillRect(424, 44, 18, 96);
+    for (const vaxtX of [325, 365, 405]) {
+        ctx.fillStyle = "#c0623a";
+        ctx.fillRect(vaxtX - 7, 118, 14, 12);
+        ctx.fillStyle = "#3f8f3f";
+        ctx.fillRect(vaxtX - 9, 104, 18, 14);
+    }
+
+    // Golvklocka
+    ctx.fillStyle = "#5a3a1e";
+    ctx.fillRect(670, 40, 46, 120);
+    ctx.fillStyle = "#f4ecd8";
+    ctx.fillRect(679, 50, 28, 28);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(692, 54, 2, 12);
+    ctx.fillRect(692, 64, 10, 2);
+    ctx.fillStyle = "#d4a017";
+    ctx.fillRect(689, 100, 8, 40);
+
+    // Rund trasmatta
+    const mattFarger = ["#c94f4f", "#f0d68a", "#5b8fc9", "#f0d68a", "#c94f4f"];
+    for (let i = 0; i < mattFarger.length; i++) {
+        ctx.fillStyle = mattFarger[i];
+        ctx.beginPath();
+        ctx.ellipse(420, 400, 190 - i * 34, 95 - i * 17, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Grön fåtölj där Farmor sitter, och en stickkorg
+    ctx.fillStyle = "#3f7a4a";
+    ctx.fillRect(360, 160, 100, 90);
+    ctx.fillRect(350, 235, 120, 50);
+    ctx.fillStyle = "#2f5e38";
+    ctx.fillRect(342, 210, 28, 75);
+    ctx.fillRect(450, 210, 28, 75);
+    ctx.fillStyle = "#8a5a2b";
+    ctx.fillRect(495, 255, 40, 28);
+    ctx.fillStyle = "#d77a8a";
+    ctx.fillRect(503, 246, 12, 12);
+    ctx.fillStyle = "#5b8fc9";
+    ctx.fillRect(517, 248, 12, 10);
+}
+
+// Köket: öppningen nedåt leder tillbaka till vardagsrummet.
+function ritaKok() {
+    // Ljusgula väggar
+    ctx.fillStyle = "#f6e7a1";
+    ctx.fillRect(kitchen.x, kitchen.y, kitchen.width, 200);
+    ctx.fillStyle = "#e3cf7f";
+    ctx.fillRect(kitchen.x, kitchen.y, 52, 440);
+    ctx.fillRect(650, kitchen.y, 52, 440);
+
+    // Golv med ljusgröna plattor
+    for (let x = 150; x < 650; x += 25) {
+        for (let y = 300; y < 540; y += 25) {
+            ctx.fillStyle = (x + y) % 50 === 0 ? "#cfe8c4" : "#b9dbab";
+            ctx.fillRect(x, y, 25, 25);
+        }
+    }
+    ritaTragolv(242, 540, 116, 60);
+
+    // Fönster med rutiga gardiner
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(210, 140, 120, 90);
+    ctx.fillStyle = "#9fd3f0";
+    ctx.fillRect(216, 146, 108, 78);
+    for (const gardinX of [200, 310]) {
+        for (let x = 0; x < 30; x += 10) {
+            for (let y = 0; y < 100; y += 10) {
+                ctx.fillStyle = (x + y) % 20 === 0 ? "#d63c3c" : "#fff";
+                ctx.fillRect(gardinX + x, 135 + y, 10, 10);
+            }
+        }
+    }
+
+    // Hylla med kaffekoppar
+    ctx.fillStyle = "#8a5a2b";
+    ctx.fillRect(400, 190, 170, 8);
+    const koppFarger = ["#5b8fc9", "#d63c3c", "#fff", "#3f8f3f", "#d4a017"];
+    for (let i = 0; i < koppFarger.length; i++) {
+        ctx.fillStyle = koppFarger[i];
+        ctx.fillRect(412 + i * 32, 172, 16, 18);
+    }
+
+    // Bänk där pajen står
+    ctx.fillStyle = "#8fb8a0";
+    ctx.fillRect(150, 300, 500, 56);
+    ctx.fillStyle = "#d9d2c5";
+    ctx.fillRect(150, 296, 500, 12);
+    ctx.fillStyle = "#5e8a72";
+    for (let x = 150; x < 650; x += 70) {
+        ctx.fillRect(x, 308, 2, 48);
+        ctx.fillRect(x + 30, 326, 10, 4);
+    }
+
+    // Spis
+    ctx.fillStyle = "#e8e8e8";
+    ctx.fillRect(540, 296, 90, 60);
+    ctx.fillStyle = "#333";
+    ctx.fillRect(550, 300, 28, 8);
+    ctx.fillRect(592, 300, 28, 8);
+    ctx.fillRect(555, 318, 70, 30);
+}
+
+function ritaKaffe() {
+    ritaPixlar(kaffePixlar, kaffeFarger, kaffe.x, kaffe.y, 3, false);
+    ctx.fillStyle = "#3a2a10";
+    ctx.font = "bold 13px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("Sikaels kaffe", kaffe.x, kaffe.y - 20);
+}
+
 function drawFarmorRoom() {
     ctx.save();
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
-    if (farmorBackground.complete && farmorBackground.naturalWidth > 0) {
-        ctx.drawImage(farmorBackground, 0, 0, canvas.width, canvas.height);
-    }
-    ritaPixlar(farmorPixlar, farmorFarger, rooms[2].npcX, rooms[2].npcY, farmorPixelRum, false);
+    ritaVardagsrum();
+    ritaPixlar(farmorSitterPixlar, farmorFarger, rooms[2].npcX, rooms[2].npcY, farmorPixelRum, false);
     ritaBarn(playerX, playerY, currentDirection);
     ctx.fillStyle = "#000";
     ctx.fillRect(12, 10, 200, 30);
@@ -1581,10 +1763,9 @@ function drawKitchen() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
-    if (kitchenBackground.complete && kitchenBackground.naturalWidth > 0) {
-        ctx.drawImage(kitchenBackground, kitchen.x, kitchen.y, kitchen.width, kitchen.height);
-    }
+    ritaKok();
     if (!pie.collected) drawCharacter(pie.x, pie.y, 48, pieImage);
+    if (!kaffe.collected) ritaKaffe();
     ritaBarn(playerX, playerY, currentDirection);
     if (pickupMessageTime > 0) {
         ctx.fillStyle = "#000";
@@ -1593,7 +1774,7 @@ function drawKitchen() {
         ctx.font = "22px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("Du fick 3 pumpapajer!", 400, 58);
+        ctx.fillText(pickupMessage, 400, 58);
     }
     ctx.restore();
 }
