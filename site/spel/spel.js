@@ -409,9 +409,70 @@ const heartImage = new Image();
 heartImage.onerror = () => console.error("Kunde inte ladda bilden av hjärtat.");
 heartImage.src = "images/hjarta.png";
 
-const floweyImage = new Image();
-floweyImage.onerror = () => console.error("Kunde inte ladda bilden av Flowie.");
-floweyImage.src = "images/flowie.png";
+// Flowie är en blåklocka som ritas med pixlar. Ansiktet byts under samtalet.
+const flowieFarger = {
+    G: "#2f6b2f", // stjälk
+    A: "#4caf50", // blad
+    T: "#1d3d1d", // taggar
+    B: "#4a6fd8", // blomman
+    L: "#7fa0f0", // blommans kant
+    W: "#ffffff", // ögonvitor och tänder
+    O: "#000000", // pupiller
+    M: "#3a0a0a", // mun
+    E: "#ff2020"  // röda ögon
+};
+const flowieTopp = [
+    "...GGGGGG.......",
+    "..G.....G.......",
+    "..G....BBB......",
+    "..G...BBBBB.....",
+    "..G..BBBBBBB...."
+];
+const flowieBotten = [
+    "..GLLBLLBLLBLL..",
+    "..G.............",
+    ".TG.............",
+    "..GT............",
+    "AAGAA...........",
+    ".AGA............",
+    "..G.............",
+    ".TG.............",
+    "..G.............",
+    ".GGG............"
+];
+// 0 = snäll, 1 = lurig, 2 = arg, 3 = elakt skratt
+const flowieAnsikten = [
+    [
+        "..G..BWWBWWB....",
+        "..G..BWOBWOB....",
+        "..G.BBBBBBBBB...",
+        "..G.BBMBBBMBB...",
+        "..G.BBBMMMBBB..."
+    ],
+    [
+        "..G..BBBBBBB....",
+        "..G..BOOBOOB....",
+        "..G.BBBBBBBBB...",
+        "..G.BBBBBBMBB...",
+        "..G.BMMMMMBBB..."
+    ],
+    [
+        "..G..BOBBBOB....",
+        "..G..BWOBOWB....",
+        "..G.BBBBBBBBB...",
+        "..G.BBBMMMBBB...",
+        "..G.BBMBBBMBB..."
+    ],
+    [
+        "..G..BEEBEEB....",
+        "..G..BEEBEEB....",
+        "..G.BMMMMMMMB...",
+        "..G.BMWMWMWMB...",
+        "..G.BBMMMMMBB..."
+    ]
+];
+const flowiePixelRum = 3;
+const flowiePixelStrid = 6;
 
 // Farmor ritas med pixlar, precis som barnet.
 const farmorFarger = {
@@ -462,14 +523,6 @@ sikaelImage.src = "images/sikael.png";
 const sikaelKneelingImage = new Image();
 sikaelKneelingImage.onerror = () => console.error("Kunde inte ladda bilden av Sikael på knä.");
 sikaelKneelingImage.src = "images/sikael-kna.png";
-
-const flowieFaces = [floweyImage];
-for (const file of ["Flowey_battle_fatal_Genocide.webp", "flower-flowers.gif", "Flowey_battle_laugh.png"]) {
-    const image = new Image();
-    image.onerror = () => console.error("Kunde inte ladda Flowies bild: " + file);
-    image.src = "images/" + file;
-    flowieFaces.push(image);
-}
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1318,7 +1371,7 @@ function draw() {
         const npcX = rooms[currentRoom].npcX;
         const npcY = rooms[currentRoom].npcY;
         if (rooms[currentRoom].npc === "Flowie") {
-            drawCharacter(npcX, npcY, 64, floweyImage);
+            ritaFlowie(npcX, npcY, 0, flowiePixelRum);
         } else if (rooms[currentRoom].npc === "Farmor") {
             ritaPixlar(farmorPixlar, farmorFarger, npcX, npcY, farmorPixelRum, false);
         } else {
@@ -1457,6 +1510,11 @@ function ritaPixlar(rader, farger, x, y, pixel, spegla) {
         }
     }
     ctx.restore();
+}
+
+function ritaFlowie(x, y, ansikte, pixel) {
+    const rader = flowieTopp.concat(flowieAnsikten[ansikte], flowieBotten);
+    ritaPixlar(rader, flowieFarger, x, y, pixel, false);
 }
 
 function drawSikael(kneeling, context = ctx) {
@@ -1896,7 +1954,7 @@ function drawAttackScene() {
     if (gameState === "rescue") {
         ritaPixlar(farmorPixlar, farmorFarger, 400, 110, farmorPixelRaddning, false);
     } else {
-        drawCharacter(400, 110, 120, flowieFaces[faceIndex]);
+        ritaFlowie(400, 110, faceIndex, flowiePixelStrid);
     }
 
     if ((gameState === "attack" || gameState === "rescue") && stormBalls.length > 0) {

@@ -141,7 +141,7 @@
 - 2026-11-19 – gjord (väntar på test): "randig tröja, istället för prickar, och annan färg på byxorna" – mintgrön tröja med vita ränder, gula byxor. Resten var bra.
 - 2026-11-19 – aktuell: Eleven frågar hur Farmor och Flowie ska göras om.
 - 2026-11-19 – gjord (väntar på test): Egen Farmor ritad med kod. Eleven tänkte först på "farmor från cookie clicker", men valde ett eget förslag: vitt hår i knut med röd blomma, runda glasögon, rosiga kinder, senapsgul kofta, mörkröd kjol, tofflor och pumpapaj i händerna. Ersätter Farmor-bilderna i rummet och vid räddningen.
-- 2026-11-19 – ej gjord: Egen Flowie, en annan sorts blomma med eget ansikte.
+- 2026-11-19 – gjord (väntar på test): Egen Flowie ritad med kod: blå blåklocka med böjt huvud, mörkgrön stjälk med blad och taggar. Fyra ansikten i samtalet: snäll, lurig, arg och elakt skratt med röda ögon. Ersätter Flowie-bilderna i skogen och i striden.
 - 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.
 - 2026-11-19 – gjord (väntar på test): Efter sista slaget sjunker Sikael ner och stående bilden tonar över till knäbilden under 1,2 sekunder. Sedan kommer replikerna. Stoftet ("perishgrejen") från knäbilden är kvar som förut – "den är väldigt fin och jag vill ha kvar den".
 - 2026-11-19 – aktuell: Övergången fungerar, men eleven vill ha "som i undertale, att det är långsamma frames som till slut blir en hel film" – hackiga steg i stället för mjuk toning.
