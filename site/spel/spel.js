@@ -67,8 +67,10 @@ const bossLunchLines = [
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
 const sekunderPerRuta = 0.2;
-// Hur länge varje arg bild visas innan han faller ihop
-const sekunderPerArgBild = 0.5;
+// I DETERMINATION blir Sikael mindre arg när hälsan går ner till de här värdena.
+const sikaelMindreArgVid = 60;
+const sikaelAnnuMindreArgVid = 40;
+const sikaelKnaTid = sikaelSjunkRutor * sekunderPerRuta;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -594,10 +596,6 @@ sikaelArg2Image.src = "images/sikael-arg-2.png";
 const sikaelArg3Image = new Image();
 sikaelArg3Image.onerror = () => console.error("Kunde inte ladda bilden sikael-arg-3.png.");
 sikaelArg3Image.src = "images/sikael-arg-3.png";
-// När Sikael är besegrad är han först jättearg, sedan mindre och mindre arg. Sedan faller han ihop.
-const sikaelArgaBilder = [sikaelDeterminationImage, sikaelArg2Image, sikaelArg3Image];
-const sikaelArgTid = sikaelArgaBilder.length * sekunderPerArgBild;
-const sikaelKnaTid = sikaelArgTid + sikaelSjunkRutor * sekunderPerRuta;
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1688,20 +1686,22 @@ function drawSikael(kneeling, context = ctx) {
     if (kneeling) {
         ritaSikaelRuta(sikaelSjunkRutor - 1, context);
     } else {
-        // Under fighten är Sikael sur, och ännu argare i DETERMINATION
-        const bild = boss.determination ? sikaelDeterminationImage : sikaelSurImage;
+        // Under fighten är Sikael sur. I DETERMINATION beror ilskan på hälsan.
+        const bild = boss.determination ? sikaelDeterminationBild(boss.hp) : sikaelSurImage;
         drawCharacter(400, 145, 190, bild, context);
     }
 }
 
-// tid är sekunder sedan sista slaget. Först visas de arga bilderna, sedan rutorna
-// där han faller ihop. En bild i taget, hackigt som i Undertale.
+// Jättearg i början av DETERMINATION, sedan mindre och mindre arg när hälsan sjunker.
+function sikaelDeterminationBild(hp) {
+    if (hp <= sikaelAnnuMindreArgVid) return sikaelArg3Image;
+    if (hp <= sikaelMindreArgVid) return sikaelArg2Image;
+    return sikaelDeterminationImage;
+}
+
+// tid är sekunder sedan sista slaget. En ruta i taget visas, hackigt som i Undertale.
 function ritaSikaelSomFaller(tid) {
-    if (tid < sikaelArgTid) {
-        drawCharacter(400, 145, 190, sikaelArgaBilder[Math.floor(tid / sekunderPerArgBild)]);
-        return;
-    }
-    const ruta = Math.floor((tid - sikaelArgTid) / sekunderPerRuta);
+    const ruta = Math.floor(tid / sekunderPerRuta);
     ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, ruta));
 }
 
