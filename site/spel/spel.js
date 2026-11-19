@@ -66,7 +66,9 @@ const bossLunchLines = [
 // Sista rutan är Sikael på knä.
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
-const sekunderPerRuta = 0.5;
+const sekunderPerRuta = 0.2;
+// Hur länge varje arg bild visas innan han faller ihop
+const sekunderPerArgBild = 0.5;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -594,7 +596,8 @@ sikaelArg3Image.onerror = () => console.error("Kunde inte ladda bilden sikael-ar
 sikaelArg3Image.src = "images/sikael-arg-3.png";
 // När Sikael är besegrad är han först jättearg, sedan mindre och mindre arg. Sedan faller han ihop.
 const sikaelArgaBilder = [sikaelDeterminationImage, sikaelArg2Image, sikaelArg3Image];
-const sikaelKnaTid = (sikaelArgaBilder.length + sikaelSjunkRutor) * sekunderPerRuta;
+const sikaelArgTid = sikaelArgaBilder.length * sekunderPerArgBild;
+const sikaelKnaTid = sikaelArgTid + sikaelSjunkRutor * sekunderPerRuta;
 
 // Spelarens stats
 let playerX = canvas.width / 2;
@@ -1694,12 +1697,12 @@ function drawSikael(kneeling, context = ctx) {
 // tid är sekunder sedan sista slaget. Först visas de arga bilderna, sedan rutorna
 // där han faller ihop. En bild i taget, hackigt som i Undertale.
 function ritaSikaelSomFaller(tid) {
-    const steg = Math.floor(tid / sekunderPerRuta);
-    if (steg < sikaelArgaBilder.length) {
-        drawCharacter(400, 145, 190, sikaelArgaBilder[steg]);
+    if (tid < sikaelArgTid) {
+        drawCharacter(400, 145, 190, sikaelArgaBilder[Math.floor(tid / sekunderPerArgBild)]);
         return;
     }
-    ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, steg - sikaelArgaBilder.length));
+    const ruta = Math.floor((tid - sikaelArgTid) / sekunderPerRuta);
+    ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, ruta));
 }
 
 // Ritar en av rutorna i sikael-sjunk.png. Ruta 0 är först, sedan åt höger och nästa rad.
