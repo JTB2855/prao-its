@@ -14,6 +14,11 @@ const kaffe = { x: 500, y: 318, collected: false };
 let pieCount = 0;
 let pickupMessageTime = 0;
 let pickupMessage = "";
+let kontorTid = 0;
+const kontorVantetid = 1;
+// Korridoren är större än skärmen: en del åt höger och en del uppåt. Kameran följer Char.
+const korridorHoger = { x: -100, y: 365, bredd: 1500, hojd: 140 };
+const korridorUpp = { x: 1260, y: -900, bredd: 140, hojd: 1405 };
 const boss = {
     hp: 100, maxHP: 100, turn: 0, timer: 0,
     invincibleTime: 0, projectiles: [], message: "", entryHP: 100, entryPieCount: 0,
@@ -587,8 +592,8 @@ const rooms = [
     { name: "Farmors kök", description: "Gå tillbaka genom öppningen nedåt", npc: null, spawnX: 300, spawnY: 550 },
     { name: "Grotta höger", description: "Skelett längre in", npc: "Papyrus", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Snöbiom vänster", description: "Hundar här", npc: "Hundar", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
-    { name: "Rum 7", description: "Tomt rum", npc: null, spawnX: 400, spawnY: 300 },
-    { name: "Rum 8", description: "Tomt rum", npc: null, spawnX: 400, spawnY: 300 },
+    { name: "Korridor", description: "Till Sikaels kontor", npc: null, spawnX: 40, spawnY: 435 },
+    { name: "Sikaels kontor", description: "Sikael sitter vid skrivbordet", npc: null, spawnX: 400, spawnY: 520 },
     { name: "Rum 9", description: "Tomt rum", npc: null, spawnX: 400, spawnY: 300 },
     { name: "Boss - Sikael", description: "Sista mötet!", npc: "Sikael", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 }
 ];
@@ -1205,6 +1210,25 @@ function canWalkInKitchen(x, y) {
     return true;
 }
 
+function canWalkInCorridor(x, y) {
+    const halfSize = playerSize / 2;
+    for (const cornerX of [x - halfSize, x + halfSize]) {
+        for (const cornerY of [y - halfSize, y + halfSize]) {
+            if (!arInne(korridorHoger, cornerX, cornerY) && !arInne(korridorUpp, cornerX, cornerY)) return false;
+        }
+    }
+    return true;
+}
+
+function canWalkInOffice(x, y) {
+    const halfSize = playerSize / 2;
+    return x - halfSize >= 60 && x + halfSize <= 740 && y - halfSize >= 290 && y + halfSize <= 580;
+}
+
+function arInne(ruta, x, y) {
+    return x >= ruta.x && x <= ruta.x + ruta.bredd && y >= ruta.y && y <= ruta.y + ruta.hojd;
+}
+
 function update(seconds = 1 / 60) {
     pickupMessageTime = Math.max(0, pickupMessageTime - seconds);
     if (gameState.startsWith("boss-")) {
@@ -1262,8 +1286,42 @@ function update(seconds = 1 / 60) {
                 playerX = rooms[currentRoom].spawnX;
                 playerY = rooms[currentRoom].spawnY;
             } else if (keys.ArrowRight && inBossHallway && playerX - playerSize / 2 > canvas.width) {
-                startBoss();
+                currentRoom = 6;
+                playerX = rooms[currentRoom].spawnX;
+                playerY = rooms[currentRoom].spawnY;
             }
+            return;
+        }
+
+        if (currentRoom === 6) {
+            if (canWalkInCorridor(newX, playerY)) playerX = newX;
+            if (canWalkInCorridor(playerX, newY)) playerY = newY;
+            if (playerX + playerSize / 2 < 0) {
+                currentRoom = 2;
+                playerX = canvas.width - 40;
+                playerY = 435;
+            }
+            const vidDorren = playerY - playerSize / 2 <= korridorUpp.y + 5;
+            if (keys.ArrowUp && vidDorren) {
+                if (kaffe.collected) {
+                    currentRoom = 7;
+                    playerX = rooms[currentRoom].spawnX;
+                    playerY = rooms[currentRoom].spawnY;
+                    currentDirection = 0;
+                    kontorTid = 0;
+                } else if (pickupMessageTime === 0) {
+                    pickupMessage = "Dörren är låst.";
+                    pickupMessageTime = 2;
+                }
+            }
+            return;
+        }
+
+        if (currentRoom === 7) {
+            if (canWalkInOffice(newX, playerY)) playerX = newX;
+            if (canWalkInOffice(playerX, newY)) playerY = newY;
+            kontorTid += seconds;
+            if (kontorTid >= kontorVantetid) startBoss();
             return;
         }
 
@@ -1372,6 +1430,14 @@ function draw() {
     }
     if (currentRoom === 3) {
         drawKitchen();
+        return;
+    }
+    if (currentRoom === 6) {
+        ritaKorridor();
+        return;
+    }
+    if (currentRoom === 7) {
+        ritaKontor();
         return;
     }
 
@@ -1767,15 +1833,115 @@ function drawKitchen() {
     if (!pie.collected) drawCharacter(pie.x, pie.y, 48, pieImage);
     if (!kaffe.collected) ritaKaffe();
     ritaBarn(playerX, playerY, currentDirection);
-    if (pickupMessageTime > 0) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(100, 30, 600, 55);
-        ctx.fillStyle = "#fff";
-        ctx.font = "22px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(pickupMessage, 400, 58);
+    ritaMeddelande();
+    ctx.restore();
+}
+
+function ritaMeddelande() {
+    if (pickupMessageTime <= 0) return;
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(100, 30, 600, 55);
+    ctx.fillStyle = "#fff";
+    ctx.font = "22px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(pickupMessage, 400, 58);
+    ctx.restore();
+}
+
+function ritaKorridor() {
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(canvas.width / 2 - playerX, canvas.height / 2 - playerY);
+
+    // Väggar runt golvet
+    ctx.fillStyle = "#6b4423";
+    ctx.fillRect(korridorHoger.x, korridorHoger.y - 12, korridorHoger.bredd + 12, korridorHoger.hojd + 24);
+    ctx.fillRect(korridorUpp.x - 12, korridorUpp.y - 90, korridorUpp.bredd + 24, korridorUpp.hojd + 102);
+    // Tapet ovanför golvet, med tavlor
+    ctx.fillStyle = "#c9b48a";
+    ctx.fillRect(korridorHoger.x, korridorHoger.y - 80, korridorUpp.x - korridorHoger.x - 12, 68);
+    ctx.fillRect(korridorUpp.x, korridorUpp.y - 90, korridorUpp.bredd, 90);
+    const tavelFarger = ["#5b8fc9", "#3f8f3f", "#d77a8a"];
+    for (let i = 0; i < tavelFarger.length; i++) {
+        ctx.fillStyle = "#d4a017";
+        ctx.fillRect(200 + i * 380, 300, 60, 46);
+        ctx.fillStyle = tavelFarger[i];
+        ctx.fillRect(206 + i * 380, 306, 48, 34);
     }
+
+    ritaTragolv(korridorHoger.x, korridorHoger.y, korridorHoger.bredd, korridorHoger.hojd);
+    ritaTragolv(korridorUpp.x, korridorUpp.y, korridorUpp.bredd, korridorUpp.hojd);
+
+    // Dörren till Sikaels kontor
+    ctx.fillStyle = "#5a3a1e";
+    ctx.fillRect(korridorUpp.x + 30, korridorUpp.y - 80, 80, 80);
+    ctx.fillStyle = "#d4a017";
+    ctx.fillRect(korridorUpp.x + 94, korridorUpp.y - 42, 8, 8);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(korridorUpp.x + 40, korridorUpp.y - 70, 60, 18);
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SIKAEL", korridorUpp.x + 70, korridorUpp.y - 61);
+
+    ritaBarn(playerX, playerY, currentDirection);
+    ctx.restore();
+    ritaMeddelande();
+}
+
+// Kontoret uppifrån. Sikael sitter halvt bakom skrivbordet tills striden börjar.
+function ritaKontor() {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Vägg med whiteboard
+    ctx.fillStyle = "#d8e2ea";
+    ctx.fillRect(50, 40, 700, 110);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(520, 55, 160, 80);
+    ctx.fillStyle = "#5b8fc9";
+    ctx.fillRect(535, 75, 80, 4);
+    ctx.fillRect(535, 95, 120, 4);
+    ctx.fillRect(535, 115, 60, 4);
+
+    // Grå heltäckningsmatta och dörröppning nedåt
+    ctx.fillStyle = "#8a8f98";
+    ctx.fillRect(50, 150, 700, 440);
+    ctx.fillRect(360, 580, 80, 20);
+    ctx.fillStyle = "#6b4423";
+    ctx.fillRect(50, 146, 700, 6);
+
+    // Krukväxt i hörnet
+    ctx.fillStyle = "#c0623a";
+    ctx.fillRect(90, 190, 40, 40);
+    ctx.fillStyle = "#3f8f3f";
+    ctx.fillRect(78, 160, 64, 40);
+
+    drawCharacter(400, 195, 130, sikaelImage);
+
+    // Skrivbord med datorn vriden mot Sikael
+    ctx.fillStyle = "#7a5230";
+    ctx.fillRect(280, 215, 240, 22);
+    ctx.fillStyle = "#8a6038";
+    ctx.fillRect(285, 237, 230, 48);
+    ctx.fillStyle = "#333";
+    ctx.fillRect(440, 196, 60, 24);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(360, 250, 80, 20);
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SIKAEL", 400, 260);
+
+    ritaBarn(playerX, playerY, currentDirection);
     ctx.restore();
 }
 
@@ -1785,7 +1951,7 @@ function drawBossStatus(y) {
     ctx.font = "bold 24px monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText("CHARA", 40, y);
+    ctx.fillText("CHAR", 40, y);
     ctx.fillText("HÄLSA", 205, y);
     ctx.fillStyle = "#b82020";
     ctx.fillRect(295, y - 12, 180, 24);
