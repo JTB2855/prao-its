@@ -165,6 +165,12 @@
 - 2026-11-19 – gjord (väntar på test): "gör så man bara blir jagad av monstret på varannan gång. annars gör den inte det. och när den inte är där så är det 3 linjer bara." Kedjeattacken har nu bara tre kedjor med mynt, ingen mimic. Mimicen jagar bara i springattacken.
 - 2026-11-19 – gjord (väntar på test): "gör monstret så den alltid är i skärmen, den är alltid längst ner, men den kommer närmare när man står still. och ju mer skada man gjort på mimicen desto snabbare blir den och desto mer bollar som flyger förbi kommer". Mimicen syns alltid längst ner (högst 2 rader bakom hjärtat), kommer närmare hela tiden och backar en rad när man hoppar uppåt. Farten går från 0,6 till 1,8 rader per sekund och bollarna per rad från 1 till 3 ju mer skada mimicen har tagit.
 - 2026-11-20 – gjord: Ändringar från två datorer slogs ihop (klockan och mimic-striden från dator 1, nya Sikael-bilder och kungastol från dator 2).
+- 2026-11-20 – gjord (väntar på test): "efter att man dödat mimicen så kan man inte ta sig ut" – fixat (Char stannade ett steg för högt upp vid utgången, samma sorts fel som vid klockan).
+- 2026-11-20 – gjord (väntar på test): "när man väl dödat den så är den en mimic med slutna ögon och tunga ut istället för kistan" – egen pixelbild av besegrad mimic i det hemliga rummet.
+- 2026-11-20 – gjord (väntar på test): "jagandet är perfekt men kedgan är för enkel" – mynten i kedjeattacken kommer från båda håll, oftare och snabbare. Ju mer skada mimicen har tagit, desto tätare och snabbare blir de. Springattacken är oförändrad.
+- 2026-11-20 – gjord (väntar på test): "kan du göra så att man också är på kedjor i jagandet?" Eleven valde "a": bara utseendet. Varje rad i springattacken har en gyllene kedja; styrningen är oförändrad.
+- 2026-11-20 – gjord (väntar på test): "kan vi ha svart bakgrund där och bara guldiga linjer att hoppa på" – de färgade raderna i springattacken är borttagna; bara svart bakgrund och gyllene kedjor.
+- 2026-11-20 – gjord (väntar på test): "kan du göra en k fusk igen för mimicen?" – K i mimicens meny sätter mimicens hälsa till 5.
 - 2026-11-19 – gjord: "eftersom vi tog hans kaffe tidigare vill han fightas". Utan kaffet: "dörren förblir låst" – texten "Dörren är låst." visas.
 - 2026-11-19 – gjord: "Min karaktär kan heta Char" – CHAR i striden i stället för CHARA.
 - 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.

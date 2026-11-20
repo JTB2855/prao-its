@@ -623,6 +623,21 @@ const kistaMimic = [
     "DBBBBBBBBBBBBD",
     "DDDDDDDDDDDDDD"
 ];
+// Besegrad mimic: slutna ögon och tungan hängande ute.
+const kistaBesegrad = [
+    "..DDDDDDDDDD..",
+    ".DBBBBBBBBBBD.",
+    "DBBOOBBBBOOBBD",
+    "DBBBBBBBBBBBBD",
+    "DGGGGGGGGGGGGD",
+    "RWRWRWRWRWRWRR",
+    "RRRRRRTTRRRRRR",
+    "DGGGGGTTGGGGGD",
+    "DBBBBBTTBBBBBD",
+    "DBBBBBTTBBBBBD",
+    "DBBBBBBBBBBBBD",
+    "DDDDDDDDDDDDDD"
+];
 const kaffePixlar = [
     "..A..A..",
     ".A..A...",
@@ -800,6 +815,10 @@ function hanteraMimicTangent(e) {
     if (e.repeat) return;
     const s = mimicStrid;
     if (gameState === "mimic-meny" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) s.val = 1 - s.val;
+    if (gameState === "mimic-meny" && e.key.toLowerCase() === "k") {
+        s.hp = 5;
+        s.meddelande = "Fuskkod: Mimicen har nu 5 hälsa.";
+    }
     if (gameState === "mimic-jakt") {
         if (e.key === "ArrowUp") s.linje = Math.max(0, s.linje - 1);
         if (e.key === "ArrowDown") s.linje = Math.min(mimicKedjor.length - 1, s.linje + 1);
@@ -929,13 +948,20 @@ function uppdateraKedjor(seconds) {
     if (keys.ArrowRight) s.hjartaX += 220 * seconds;
     s.hjartaX = Math.max(left, Math.min(right, s.hjartaX));
 
+    // Mynt kommer från båda håll, oftare och snabbare ju mer skada mimicen har tagit
     s.myntTid += seconds;
-    if (s.myntTid >= 0.9) {
+    if (s.myntTid >= 0.55 - 0.25 * mimicSkadaAndel()) {
         s.myntTid = 0;
-        s.mynt.push({ x: right + 20, linje: Math.floor(Math.random() * mimicKedjor.length) });
+        const franVanster = Math.random() < 0.5;
+        const fart = 220 + 120 * mimicSkadaAndel();
+        s.mynt.push({
+            x: franVanster ? left - 20 : right + 20,
+            linje: Math.floor(Math.random() * mimicKedjor.length),
+            fart: franVanster ? fart : -fart
+        });
     }
-    for (const mynt of s.mynt) mynt.x -= 180 * seconds;
-    s.mynt = s.mynt.filter(mynt => mynt.x > left - 20);
+    for (const mynt of s.mynt) mynt.x += mynt.fart * seconds;
+    s.mynt = s.mynt.filter(mynt => mynt.x > left - 30 && mynt.x < right + 30);
 
     return s.mynt.some(mynt => mynt.linje === s.linje && Math.abs(mynt.x - s.hjartaX) < 14);
 }
@@ -1682,7 +1708,7 @@ function update(seconds = 1 / 60) {
         if (currentRoom === 8) {
             if (canWalkInSecretRoom(newX, playerY)) playerX = newX;
             if (canWalkInSecretRoom(playerX, newY)) playerY = newY;
-            if (playerY + playerSize / 2 >= 580 && keys.ArrowDown) {
+            if (playerY + playerSize / 2 >= 580 - 5 && keys.ArrowDown) {
                 flyttaTillRum(2, 693, 200);
             }
             if (!kista.besegrad && Math.hypot(playerX - kista.x, playerY - kista.y) < 90) {
@@ -2375,7 +2401,7 @@ function ritaHemligtRum() {
     ctx.fillStyle = "#ffb84a";
     ctx.fillRect(251, 108, 8, 12);
 
-    ritaPixlar(kistaStangd, mimicFarger, kista.x, kista.y, 5, false);
+    ritaPixlar(kista.besegrad ? kistaBesegrad : kistaStangd, mimicFarger, kista.x, kista.y, 5, false);
     ritaBarn(playerX, playerY, currentDirection);
     ctx.restore();
 }
@@ -2479,6 +2505,14 @@ function ritaMimicMeny() {
     ctx.restore();
 }
 
+// En gyllene kedja från x1 till x2 på höjden y. Används i båda mimic-attackerna.
+function ritaKedja(x1, x2, y) {
+    ctx.fillStyle = "#d4a017";
+    for (let x = x1; x < x2; x += 14) {
+        ctx.fillRect(x, y - 2, 9, 4);
+    }
+}
+
 function ritaKedjeArena() {
     const s = mimicStrid;
     const k = mimicKvadrat;
@@ -2487,11 +2521,8 @@ function ritaKedjeArena() {
     ctx.strokeRect(k.left, k.top, k.size, k.size);
 
     // Gyllene kedjor
-    ctx.fillStyle = "#d4a017";
     for (const kedjaY of mimicKedjor) {
-        for (let x = k.left + 5; x < k.left + k.size - 5; x += 14) {
-            ctx.fillRect(x, kedjaY - 2, 9, 4);
-        }
+        ritaKedja(k.left + 5, k.left + k.size - 5, kedjaY);
     }
 
     ctx.fillStyle = "#ffe04a";
@@ -2527,8 +2558,7 @@ function ritaSpring() {
     ctx.clip();
     for (let rad = s.rad - 3; rad <= s.rad + 10; rad++) {
         const y = radY(rad);
-        ctx.fillStyle = arTryggRad(rad) ? "#2f4a2f" : (rad % 2 === 0 ? "#2a2a33" : "#33333d");
-        ctx.fillRect(a.left, y - springRuta / 2, a.bredd, springRuta);
+        ritaKedja(a.left + 5, a.left + a.bredd - 5, y);
         if (!arTryggRad(rad)) {
             ctx.fillStyle = "#ffe04a";
             for (let nummer = 0; nummer < bollarPerRad(); nummer++) {
