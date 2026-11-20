@@ -171,12 +171,14 @@
 - 2026-11-20 – gjord: "kan du göra så att man också är på kedjor i jagandet?" Eleven valde "a": bara utseendet. Varje rad i springattacken har en gyllene kedja; styrningen är oförändrad.
 - 2026-11-20 – gjord: "kan vi ha svart bakgrund där och bara guldiga linjer att hoppa på" – de färgade raderna i springattacken är borttagna; bara svart bakgrund och gyllene kedjor.
 - 2026-11-20 – gjord: "kan du göra en k fusk igen för mimicen?" – K i mimicens meny sätter mimicens hälsa till 5.
-- 2026-11-20 – gjord (väntar på test): "när man dödat sikael borde det vara en cool vinst bild eller nåt." Efter stoftet visas en vinstbild: guldtexten DU VANN!, Char i mitten, en röd mugg med varm choklad och blinkande stjärnor. Z startar om hela spelet.
-- 2026-11-20 – gjord (väntar på test): "en ny damage bild. med olika färger. typ röd längst ut och in till grön som gör mest skada". Skademätaren har fyra färgzoner: röd längst ut, sedan orange, gul och grön i mitten. Gäller både Sikael och mimicen.
-- 2026-11-20 – gjord (väntar på test): "byta namnet på sikaels kaffe till inget alls. det ska bara stå något när man tar upp den" – texten ovanför muggen är borttagen; "Du tog Sikaels kaffe!" visas fortfarande vid upplockning.
-- 2026-11-20 – gjord (väntar på test): "lyfta upp den lite? så den är på bänken inte i" – muggen står nu ovanpå bänkskivan.
-- 2026-11-20 – gjord (väntar på test): "när sikael ska gå ner på knä är det en liten annan bild än hur han ser ut annars. så skulle du kunna göra en sorts transition" – stridsbilden tonar över till första sjunkrutan under 0,4 sekunder, sedan kommer rutorna som förut.
-- 2026-11-20 – gjord (väntar på test): "ta bort de 3 sista bilderna när han går ner på knä" – bara de 5 första rutorna i sikael-sjunk.png visas. Den femte är nu slutposen, och stoftet utgår från den.
+- 2026-11-20 – gjord: "när man dödat sikael borde det vara en cool vinst bild eller nåt." Efter stoftet visas en vinstbild: guldtexten DU VANN!, Char i mitten, en röd mugg med varm choklad och blinkande stjärnor. Z startar om hela spelet.
+- 2026-11-20 – gjord: "en ny damage bild. med olika färger. typ röd längst ut och in till grön som gör mest skada". Skademätaren har fyra färgzoner: röd längst ut, sedan orange, gul och grön i mitten. Gäller både Sikael och mimicen.
+- 2026-11-20 – gjord: "byta namnet på sikaels kaffe till inget alls. det ska bara stå något när man tar upp den" – texten ovanför muggen är borttagen; "Du tog Sikaels kaffe!" visas fortfarande vid upplockning.
+- 2026-11-20 – gjord: "lyfta upp den lite? så den är på bänken inte i" – muggen står nu ovanpå bänkskivan.
+- 2026-11-20 – gjord: "när sikael ska gå ner på knä är det en liten annan bild än hur han ser ut annars. så skulle du kunna göra en sorts transition" – stridsbilden tonar över till första sjunkrutan under 0,4 sekunder, sedan kommer rutorna som förut.
+- 2026-11-20 – ersatt (4 rutor i stället för 5): "ta bort de 3 sista bilderna när han går ner på knä" – bara de 5 första rutorna i sikael-sjunk.png visas. Den femte är nu slutposen, och stoftet utgår från den.
+- 2026-11-20 – gjord: "lägga upp 2 monitorer på sikaels skrivbord ... och lägg dit en liten låda med praliner. stor nog att rymma 18 praliner men inte för stor" – två skärmar (baksidan syns) på var sin sida om Sikael och en röd pralinlåda med guldkant och 18 praliner (9 × 2) mitt på skrivbordet.
+- 2026-11-20 – gjord: "ta bort den sista knä bilden också? den passade inte riktigt in" – bara de 4 första rutorna i sikael-sjunk.png visas. Den fjärde är slutposen, och stoftet utgår från den.
 - 2026-11-19 – gjord: "eftersom vi tog hans kaffe tidigare vill han fightas". Utan kaffet: "dörren förblir låst" – texten "Dörren är låst." visas.
 - 2026-11-19 – gjord: "Min karaktär kan heta Char" – CHAR i striden i stället för CHARA.
 - 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.

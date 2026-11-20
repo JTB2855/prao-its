@@ -88,7 +88,7 @@ const bossLunchLines = [
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
 // Bara de första rutorna visas. Den sista av dem är Sikael på knä, och stoftet utgår från den.
-const sikaelSjunkVisas = 5;
+const sikaelSjunkVisas = 4;
 const sekunderPerRuta = 0.2;
 // Först tonar stridsbilden över till första sjunkrutan, så att bytet inte syns så mycket.
 const sikaelOvergangTid = 0.4;
@@ -2651,13 +2651,31 @@ function ritaKontor() {
     ritaKungastol(400, 215);
     drawCharacter(400, 195, 130, sikaelKontorBild(kontorTid));
 
-    // Skrivbord med datorn vriden mot Sikael
+    // Skrivbord med två skärmar vända mot Sikael, så vi ser deras baksidor
     ctx.fillStyle = "#7a5230";
     ctx.fillRect(280, 215, 240, 22);
     ctx.fillStyle = "#8a6038";
     ctx.fillRect(285, 237, 230, 48);
-    ctx.fillStyle = "#333";
-    ctx.fillRect(440, 196, 60, 24);
+    for (const skarmX of [290, 455]) {
+        ctx.fillStyle = "#333";
+        ctx.fillRect(skarmX, 188, 56, 28);
+        ctx.fillStyle = "#222";
+        ctx.fillRect(skarmX + 24, 214, 8, 6);
+        ctx.fillRect(skarmX + 16, 219, 24, 3);
+    }
+
+    // Låda med 18 praliner: 9 i bredd och 2 rader
+    ctx.fillStyle = "#d4a017";
+    ctx.fillRect(366, 216, 68, 19);
+    ctx.fillStyle = "#8b1e3f";
+    ctx.fillRect(368, 218, 64, 15);
+    for (let rad = 0; rad < 2; rad++) {
+        for (let kolumn = 0; kolumn < 9; kolumn++) {
+            ctx.fillStyle = (rad + kolumn) % 2 === 0 ? "#4a2a14" : "#8a5a2b";
+            ctx.fillRect(370 + kolumn * 7, 220 + rad * 6, 5, 5);
+        }
+    }
+
     ctx.fillStyle = "#fff";
     ctx.fillRect(360, 250, 80, 20);
     ctx.fillStyle = "#000";
