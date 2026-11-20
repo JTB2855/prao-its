@@ -87,13 +87,15 @@ const bossLunchLines = [
 // Sista rutan är Sikael på knä.
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
+// Bara de första rutorna visas. Den sista av dem är Sikael på knä, och stoftet utgår från den.
+const sikaelSjunkVisas = 5;
 const sekunderPerRuta = 0.2;
 // Först tonar stridsbilden över till första sjunkrutan, så att bytet inte syns så mycket.
 const sikaelOvergangTid = 0.4;
 // I DETERMINATION blir Sikael mindre arg när hälsan går ner till de här värdena.
 const sikaelMindreArgVid = 60;
 const sikaelAnnuMindreArgVid = 40;
-const sikaelKnaTid = sikaelOvergangTid + sikaelSjunkRutor * sekunderPerRuta;
+const sikaelKnaTid = sikaelOvergangTid + sikaelSjunkVisas * sekunderPerRuta;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -2025,7 +2027,7 @@ function ritaFlowie(x, y, ansikte, pixel) {
 
 function drawSikael(kneeling, context = ctx) {
     if (kneeling) {
-        ritaSikaelRuta(sikaelSjunkRutor - 1, context);
+        ritaSikaelRuta(sikaelSjunkVisas - 1, context);
     } else {
         drawCharacter(400, 145, 190, sikaelStridsBild(), context);
     }
@@ -2056,7 +2058,7 @@ function ritaSikaelSomFaller(tid) {
         return;
     }
     const ruta = Math.floor((tid - sikaelOvergangTid) / sekunderPerRuta);
-    ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, ruta));
+    ritaSikaelRuta(Math.min(sikaelSjunkVisas - 1, ruta));
 }
 
 // Ritar en av rutorna i sikael-sjunk.png. Ruta 0 är först, sedan åt höger och nästa rad.
