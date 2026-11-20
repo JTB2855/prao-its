@@ -1059,7 +1059,9 @@ function startBoss(retry = false) {
 }
 
 function handleBossChoice() {
-    if (gameState === "boss-lost" || gameState === "boss-won") {
+    if (gameState === "boss-won") {
+        location.reload();
+    } else if (gameState === "boss-lost") {
         startBoss(true);
     } else if (gameState === "boss-intro") {
         startBossDefense();
@@ -1949,10 +1951,18 @@ function drawAttackBar() {
     ctx.fillStyle = "#333";
     ctx.fillRect(barX, barY, barWidth, barHeight);
     
-    ctx.fillStyle = "#00ff00";
-    ctx.fillRect(barX + barWidth / 2 - 30, barY, 60, barHeight);
+    // Färgzoner: röd längst ut ger minst skada, grön i mitten ger mest
+    const zonFarger = ["#e03030", "#f08a24", "#f2d22e", "#35c759"];
+    for (let i = 0; i < zonFarger.length; i++) {
+        const halvBredd = barWidth / 2 * (1 - i / zonFarger.length);
+        ctx.fillStyle = zonFarger[i];
+        ctx.fillRect(barX + barWidth / 2 - halvBredd, barY, halvBredd * 2, barHeight);
+    }
+    const markorX = barX + (attackBarProgress / 100) * (barWidth - 4);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(markorX - 2, barY, 8, barHeight);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(barX + (attackBarProgress / 100) * (barWidth - 4), barY, 4, barHeight);
+    ctx.fillRect(markorX, barY, 4, barHeight);
     
     // Kant
     ctx.strokeStyle = "#fff";
@@ -2862,13 +2872,14 @@ function drawBoss() {
     ctx.font = "16px monospace";
     ctx.fillText("Pajer: " + pieCount, 30, 70);
     ctx.textAlign = "center";
-    if (gameState === "boss-dying" || gameState === "boss-won") {
+    if (gameState === "boss-dying") {
         drawBossDeath();
-        if (gameState === "boss-won") {
-            ctx.font = "20px Arial";
-            ctx.fillText("Z: försök igen med samma hälsa och pajer som vid starten", 400, 450);
-        }
         ctx.restore();
+        return;
+    }
+    if (gameState === "boss-won") {
+        ctx.restore();
+        ritaVinstbild();
         return;
     }
     if (gameState === "boss-farewell") {
@@ -2953,6 +2964,49 @@ function drawBoss() {
         ctx.font = "20px Arial";
         ctx.fillText("Z: försök igen med samma hälsa och pajer som vid starten", 400, 450);
     }
+    ctx.restore();
+}
+
+// Samma mugg som kaffet, men röd med varm choklad.
+const chokladFarger = {
+    A: "#dddddd", // ånga
+    W: "#c94f4f", // röd mugg
+    C: "#6b3e1e"  // choklad
+};
+
+// Visas när Sikael har försvunnit i stoft.
+function ritaVinstbild() {
+    const tid = performance.now() / 1000;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Gnistrande stjärnor som blinkar i otakt
+    ctx.fillStyle = "#ffe04a";
+    for (let i = 0; i < 14; i++) {
+        const x = 60 + (i * 137) % 680;
+        const y = 40 + (i * 89) % 520;
+        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(tid * 3 + i);
+        ctx.fillRect(x - 1, y - 6, 3, 13);
+        ctx.fillRect(x - 6, y - 1, 13, 3);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "#d4a017";
+    ctx.font = "bold 64px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("DU VANN!", 400, 110);
+
+    ritaPixlar(barnKroppNer.concat(benFramSta), barnFarger, 360, 320, 8, false);
+    ritaPixlar(kaffePixlar, chokladFarger, 500, 370, 6, false);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px Arial";
+    ctx.fillText("Char fick varm choklad av Sikael.", 400, 500);
+    ctx.font = "16px Arial";
+    ctx.fillText("Z: spela igen", 400, 550);
     ctx.restore();
 }
 
