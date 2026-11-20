@@ -27,6 +27,27 @@ function vandFramOchTillbaka(riktningA, riktningB, tid) {
 // Skärmen blinkar två gånger innan en strid börjar. Under tiden går det inte att trycka.
 const blinkLangd = 0.5;
 let blinkTid = 0;
+const kista = { x: 400, y: 260, besegrad: false };
+// 0 = klockan står på sin plats, 1 = klockan har glidit undan helt.
+let klockaFlyttad = 0;
+let klockaOppnas = false;
+// Striden mot mimicen: meny, mätare och två attacker som turas om.
+const mimicMaxHP = 150;
+const mimicAttackLangd = 10;
+// Attack 1: hjärtat sitter på en av tre kedjor i en kvadratisk arena och undviker mynt.
+const mimicKvadrat = { left: 250, top: 220, size: 300 };
+const mimicKedjor = [290, 370, 450];
+// Attack 2: hjärtat hoppar uppåt en rad i taget medan mimicen jagar underifrån.
+const springArena = { left: 250, bredd: 300 };
+const springRuta = 50;
+const mimicStrid = {
+    hp: 150, attack: 0, val: 0, meddelande: "", tid: 0, skydd: 0,
+    startHP: 100, startPajer: 0, resultat: "",
+    linje: 1, hjartaX: 400, mynt: [], myntTid: 0,
+    rad: 0, kolumn: 2, mimicAvstand: 2
+};
+// Mimicen syns alltid längst ner. Avståndet räknas i rader mellan mimicen och hjärtat.
+const mimicMaxAvstand = 2;
 // Korridoren är större än skärmen: en del åt höger och en del uppåt. Kameran följer Char.
 const korridorHoger = { x: -100, y: 365, bredd: 1500, hojd: 140 };
 const korridorUpp = { x: 1260, y: -900, bredd: 140, hojd: 1405 };
@@ -562,6 +583,46 @@ const pajbitPixlar = [
     "UUUUUUUUK",
     "KKKKKKKKK"
 ];
+
+// Mimicen: en kista som ser vanlig ut tills man kommer nära.
+const mimicFarger = {
+    B: "#8a5a2b", // trä
+    D: "#5a3a1e", // mörkt trä
+    G: "#d4a017", // guldkant
+    Y: "#ffe04a", // ögon
+    O: "#000000", // pupiller
+    W: "#ffffff", // tänder
+    R: "#5a0f1e", // mun
+    T: "#e0507a"  // tunga
+};
+const kistaStangd = [
+    "..DDDDDDDDDD..",
+    ".DBBBBBBBBBBD.",
+    "DBBBBBBBBBBBBD",
+    "DBBBBBBBBBBBBD",
+    "DGGGGGGGGGGGGD",
+    "DBBBBBGGBBBBBD",
+    "DBBBBBGGBBBBBD",
+    "DBBBBBBBBBBBBD",
+    "DBBBBBBBBBBBBD",
+    "DDDDDDDDDDDDDD"
+];
+const kistaMimic = [
+    "..DDDDDDDDDD..",
+    ".DBBBBBBBBBBD.",
+    "DBBYYBBBBYYBBD",
+    "DBBYOBBBBYOBBD",
+    "DGGGGGGGGGGGGD",
+    "RWRWRWRWRWRWRR",
+    "RRRRRRRRRRRRRR",
+    "RRRRTTTTTTRRRR",
+    "RRRTTTTTTTTRRR",
+    "RWRWRWRWRWRWRR",
+    "DGGGGGGGGGGGGD",
+    "DBBBBBGGBBBBBD",
+    "DBBBBBBBBBBBBD",
+    "DDDDDDDDDDDDDD"
+];
 const kaffePixlar = [
     "..A..A..",
     ".A..A...",
@@ -642,7 +703,7 @@ const rooms = [
     { name: "Snöbiom vänster", description: "Hundar här", npc: "Hundar", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 },
     { name: "Korridor", description: "Till Sikaels kontor", npc: null, spawnX: 40, spawnY: 435 },
     { name: "Sikaels kontor", description: "Sikael sitter vid skrivbordet", npc: null, spawnX: 400, spawnY: 520 },
-    { name: "Rum 9", description: "Tomt rum", npc: null, spawnX: 400, spawnY: 300 },
+    { name: "Hemligt rum", description: "Bakom golvklockan", npc: null, spawnX: 400, spawnY: 520 },
     { name: "Boss - Sikael", description: "Sista mötet!", npc: "Sikael", npcX: 600, npcY: 300, spawnX: 100, spawnY: 300 }
 ];
 
@@ -688,6 +749,11 @@ window.addEventListener("keydown", (e) => {
         if (e.key === "4") flyttaTillRum(6, korridorUpp.x + 70, korridorUpp.y + 60);
     }
 
+    if (gameState.startsWith("mimic-")) {
+        hanteraMimicTangent(e);
+        return;
+    }
+
     // Fight-meny navigation
     if (gameState === "fight") {
         if (e.key === "ArrowLeft" && selectedButton > 0) selectedButton--;
@@ -714,14 +780,206 @@ window.addEventListener("keydown", (e) => {
             playerX = rooms[currentRoom].spawnX;
             playerY = rooms[currentRoom].spawnY;
             gameState = "exploration";
+        } else if (gameState === "exploration" && currentRoom === 2 && naraKlockan()) {
+            klockaOppnas = true;
         }
     }
 });
+
+function naraKlockan() {
+    return playerX > 640 && playerX < 746 && playerY - playerSize / 2 < 175;
+}
 
 function flyttaTillRum(rum, x, y) {
     currentRoom = rum;
     playerX = x;
     playerY = y;
+}
+
+function hanteraMimicTangent(e) {
+    if (e.repeat) return;
+    const s = mimicStrid;
+    if (gameState === "mimic-meny" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) s.val = 1 - s.val;
+    if (gameState === "mimic-jakt") {
+        if (e.key === "ArrowUp") s.linje = Math.max(0, s.linje - 1);
+        if (e.key === "ArrowDown") s.linje = Math.min(mimicKedjor.length - 1, s.linje + 1);
+    }
+    if (gameState === "mimic-spring") {
+        if (e.key === "ArrowUp") {
+            s.rad++;
+            s.mimicAvstand = Math.min(mimicMaxAvstand, s.mimicAvstand + 1);
+        }
+        if (e.key === "ArrowDown" && s.rad > 0) {
+            s.rad--;
+            s.mimicAvstand -= 1;
+        }
+        if (e.key === "ArrowLeft") s.kolumn = Math.max(0, s.kolumn - 1);
+        if (e.key === "ArrowRight") s.kolumn = Math.min(springArena.bredd / springRuta - 1, s.kolumn + 1);
+    }
+    if (e.key.toLowerCase() !== "z" || zPressed) return;
+    zPressed = true;
+    if (gameState === "mimic-intro") startaMimicStrid();
+    else if (gameState === "mimic-meny") valjIMimicMeny();
+    else if (gameState === "mimic-matare") slaMimic();
+    else if (gameState === "mimic-slut") avslutaMimicStrid();
+}
+
+function startaMimicStrid() {
+    const s = mimicStrid;
+    s.hp = mimicMaxHP;
+    s.attack = 0;
+    s.val = 0;
+    s.startHP = playerHP;
+    s.startPajer = pieCount;
+    s.meddelande = "Mimicen gapar. Vad gör du?";
+    gameState = "mimic-meny";
+}
+
+function valjIMimicMeny() {
+    const s = mimicStrid;
+    if (s.val === 0) {
+        attackBarProgress = 0;
+        gameState = "mimic-matare";
+    } else if (pieCount > 0) {
+        pieCount--;
+        playerHP = maxHP;
+        s.meddelande = "Du åt en pumpapaj! Hälsan är " + maxHP + " igen.";
+    } else {
+        s.meddelande = "Du har inga pajer.";
+    }
+}
+
+function slaMimic() {
+    const s = mimicStrid;
+    const skada = Math.round(5 + 20 * (1 - Math.abs(attackBarProgress - 50) / 50));
+    s.hp = Math.max(0, s.hp - skada);
+    if (s.hp === 0) {
+        s.resultat = "Mimicen föll ihop och somnade! Du vann!";
+        kista.besegrad = true;
+        gameState = "mimic-slut";
+        return;
+    }
+    s.meddelande = "Du gjorde " + skada + " skada!";
+    startaMimicAttack();
+}
+
+// Varannan attack är kedjorna, varannan är springet uppåt.
+function startaMimicAttack() {
+    const s = mimicStrid;
+    s.tid = 0;
+    s.skydd = 0;
+    if (s.attack % 2 === 0) {
+        s.linje = 1;
+        s.hjartaX = 450;
+        s.mynt = [];
+        s.myntTid = 0;
+        gameState = "mimic-jakt";
+    } else {
+        s.rad = 0;
+        s.kolumn = 2;
+        s.mimicAvstand = mimicMaxAvstand;
+        gameState = "mimic-spring";
+    }
+    s.attack++;
+}
+
+function avslutaMimicStrid() {
+    if (playerHP <= 0) {
+        playerHP = mimicStrid.startHP;
+        pieCount = mimicStrid.startPajer;
+    }
+    playerX = 400;
+    playerY = 480;
+    gameState = "exploration";
+}
+
+function uppdateraMimicStrid(seconds) {
+    const s = mimicStrid;
+    if (gameState === "mimic-matare") {
+        attackBarProgress += seconds * 65;
+        if (attackBarProgress >= 100) {
+            s.meddelande = "Du missade!";
+            startaMimicAttack();
+        }
+        return;
+    }
+    if (gameState !== "mimic-jakt" && gameState !== "mimic-spring") return;
+    s.tid += seconds;
+    s.skydd = Math.max(0, s.skydd - seconds);
+    const traffad = gameState === "mimic-jakt" ? uppdateraKedjor(seconds) : uppdateraSpring(seconds);
+    if (traffad && s.skydd === 0) {
+        playerHP = Math.max(0, playerHP - 10);
+        s.skydd = 1;
+    }
+    if (playerHP === 0) {
+        s.resultat = "Mimicen åt upp dig! Z: tillbaka och försök igen";
+        gameState = "mimic-slut";
+    } else if (s.tid >= mimicAttackLangd) {
+        s.meddelande = "Mimicen flåsar. Din tur!";
+        gameState = "mimic-meny";
+    }
+}
+
+// Returnerar true om hjärtat blev träffat.
+function uppdateraKedjor(seconds) {
+    const s = mimicStrid;
+    const left = mimicKvadrat.left + 20;
+    const right = mimicKvadrat.left + mimicKvadrat.size - 20;
+    if (keys.ArrowLeft) s.hjartaX -= 220 * seconds;
+    if (keys.ArrowRight) s.hjartaX += 220 * seconds;
+    s.hjartaX = Math.max(left, Math.min(right, s.hjartaX));
+
+    s.myntTid += seconds;
+    if (s.myntTid >= 0.9) {
+        s.myntTid = 0;
+        s.mynt.push({ x: right + 20, linje: Math.floor(Math.random() * mimicKedjor.length) });
+    }
+    for (const mynt of s.mynt) mynt.x -= 180 * seconds;
+    s.mynt = s.mynt.filter(mynt => mynt.x > left - 20);
+
+    return s.mynt.some(mynt => mynt.linje === s.linje && Math.abs(mynt.x - s.hjartaX) < 14);
+}
+
+// Var fjärde rad är trygg. På de andra flyger en boll fram och tillbaka.
+function arTryggRad(rad) {
+    return rad <= 0 || rad % 4 === 0;
+}
+
+// 0 när mimicen har full hälsa, 1 när den nästan är besegrad.
+function mimicSkadaAndel() {
+    return (mimicMaxHP - mimicStrid.hp) / mimicMaxHP;
+}
+
+// Fler bollar per rad ju mer skada mimicen har tagit: 1, 2 eller 3.
+function bollarPerRad() {
+    return 1 + Math.floor(mimicSkadaAndel() * 2.99);
+}
+
+function springBollX(rad, tid, nummer) {
+    const varv = springArena.bredd + 80;
+    const fart = 90 + (rad % 5) * 25;
+    const riktning = rad % 2 === 0 ? 1 : -1;
+    const start = (rad * 97) % varv + nummer * varv / bollarPerRad();
+    const x = ((start + riktning * fart * tid) % varv + varv) % varv;
+    return springArena.left - 40 + x;
+}
+
+// Returnerar true om hjärtat blev träffat.
+function uppdateraSpring(seconds) {
+    const s = mimicStrid;
+    // Mimicen kommer närmare hela tiden. Hoppar man uppåt ökar avståndet igen.
+    const mimicFart = 0.6 + 1.2 * mimicSkadaAndel();
+    s.mimicAvstand -= mimicFart * seconds;
+    const hjartaX = springArena.left + springRuta / 2 + s.kolumn * springRuta;
+    let avBoll = false;
+    if (!arTryggRad(s.rad)) {
+        for (let nummer = 0; nummer < bollarPerRad(); nummer++) {
+            if (Math.abs(springBollX(s.rad, s.tid, nummer) - hjartaX) < 24) avBoll = true;
+        }
+    }
+    const avMimic = s.mimicAvstand <= 0.3;
+    if (avMimic && s.skydd === 0) s.mimicAvstand = mimicMaxAvstand;
+    return avBoll || avMimic;
 }
 
 window.addEventListener("keyup", (e) => {
@@ -1295,8 +1553,14 @@ function kanGaTill(x, y) {
     if (currentRoom === 3) return canWalkInKitchen(x, y);
     if (currentRoom === 6) return canWalkInCorridor(x, y);
     if (currentRoom === 7) return canWalkInOffice(x, y);
+    if (currentRoom === 8) return canWalkInSecretRoom(x, y);
     const halv = playerSize / 2;
     return x >= halv && x <= canvas.width - halv && y >= halv && y <= canvas.height - halv;
+}
+
+function canWalkInSecretRoom(x, y) {
+    const halfSize = playerSize / 2;
+    return x - halfSize >= 200 && x + halfSize <= 600 && y - halfSize >= 180 && y + halfSize <= 580;
 }
 
 function arInne(ruta, x, y) {
@@ -1311,6 +1575,10 @@ function update(seconds = 1 / 60) {
     }
     if (gameState.startsWith("boss-")) {
         updateBoss(seconds);
+        return;
+    }
+    if (gameState.startsWith("mimic-")) {
+        uppdateraMimicStrid(seconds);
         return;
     }
     // Kolla om vi är nära Flowie i rummet
@@ -1364,6 +1632,7 @@ function update(seconds = 1 / 60) {
         }
 
         if (currentRoom === 2) {
+            if (klockaOppnas) klockaFlyttad = Math.min(1, klockaFlyttad + seconds * 1.5);
             if (canWalkInFarmorRoom(newX, playerY)) playerX = newX;
             if (canWalkInFarmorRoom(playerX, newY)) playerY = newY;
             const inKitchenHallway = playerX - playerSize / 2 >= 115 &&
@@ -1374,6 +1643,10 @@ function update(seconds = 1 / 60) {
                 currentRoom = 3;
                 playerX = rooms[currentRoom].spawnX;
                 playerY = rooms[currentRoom].spawnY;
+            } else if (keys.ArrowUp && klockaFlyttad === 1 && playerX > 660 && playerX < 726 &&
+                playerY - playerSize / 2 < 150 + 5) {
+                // Hemlig dörr: gå in där klockan stod.
+                flyttaTillRum(8, rooms[8].spawnX, rooms[8].spawnY);
             } else if (keys.ArrowRight && inBossHallway && playerX - playerSize / 2 > canvas.width) {
                 currentRoom = 6;
                 playerX = rooms[currentRoom].spawnX;
@@ -1402,6 +1675,20 @@ function update(seconds = 1 / 60) {
                     pickupMessage = "Dörren är låst.";
                     pickupMessageTime = 2;
                 }
+            }
+            return;
+        }
+
+        if (currentRoom === 8) {
+            if (canWalkInSecretRoom(newX, playerY)) playerX = newX;
+            if (canWalkInSecretRoom(playerX, newY)) playerY = newY;
+            if (playerY + playerSize / 2 >= 580 && keys.ArrowDown) {
+                flyttaTillRum(2, 693, 200);
+            }
+            if (!kista.besegrad && Math.hypot(playerX - kista.x, playerY - kista.y) < 90) {
+                gameState = "mimic-intro";
+                spelarenGar = false;
+                blinkTid = blinkLangd;
             }
             return;
         }
@@ -1487,6 +1774,18 @@ function draw() {
         drawBoss();
         return;
     }
+    if (gameState === "mimic-intro") {
+        ritaMimicIntro();
+        return;
+    }
+    if (gameState === "mimic-spring") {
+        ritaSpring();
+        return;
+    }
+    if (gameState.startsWith("mimic-")) {
+        ritaMimicStrid();
+        return;
+    }
     if (gameState !== "exploration") {
         drawAttackScene();
         if (gameState === "fight") {
@@ -1511,6 +1810,10 @@ function draw() {
     }
     if (currentRoom === 7) {
         ritaKontor();
+        return;
+    }
+    if (currentRoom === 8) {
+        ritaHemligtRum();
         return;
     }
 
@@ -1805,18 +2108,23 @@ function ritaVardagsrum() {
     ctx.fillStyle = "#573b21";
     ctx.fillRect(80, 360, 50, 50);
 
-    // Golvklocka
+    // Golvklocka. När man trycker Z glider den åt vänster och visar en mörk dörröppning.
+    if (klockaFlyttad > 0) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(672, 40, 42, 110);
+    }
+    const klockaX = 670 - 56 * klockaFlyttad;
     ctx.fillStyle = "#5a3a1e";
-    ctx.fillRect(670, 40, 46, 120);
+    ctx.fillRect(klockaX, 40, 46, 120);
     ctx.fillStyle = "#f4ecd8";
-    ctx.fillRect(679, 50, 28, 28);
+    ctx.fillRect(klockaX + 9, 50, 28, 28);
     ctx.fillStyle = "#000";
-    ctx.fillRect(692, 54, 2, 12);
-    ctx.fillRect(692, 64, 10, 2);
+    ctx.fillRect(klockaX + 22, 54, 2, 12);
+    ctx.fillRect(klockaX + 22, 64, 10, 2);
     ctx.fillStyle = "#d4a017";
-    ctx.fillRect(689, 100, 8, 40);
+    ctx.fillRect(klockaX + 19, 100, 8, 40);
     ctx.fillStyle = "#d4a017";
-    ctx.fillRect(685, 140, 15, 10);
+    ctx.fillRect(klockaX + 15, 140, 15, 10);
 
     // Rund trasmatta
     const mattFarger = ["#c94f4f", "#f0d68a", "#5b8fc9", "#f0d68a", "#c94f4f"];
@@ -2007,8 +2315,7 @@ function ritaKorridor() {
     ritaMeddelande();
 }
 
-// Kontoret uppifrån. Sikael står halvt bakom skrivbordet tills striden börjar.
-// Vilken bild som visas beror på hur länge man har varit i kontoret.
+// Vilken bild av Sikael som visas i kontoret beror på hur länge man har varit där.
 function sikaelKontorBild(tid) {
     if (tid < kontorTittarNerTid) return sikaelTittarNerImage;
     if (tid < kontorTittarNerTid + kontorGladTid) return sikaelGladImage;
@@ -2051,6 +2358,215 @@ function ritaKungastol(x, nederkant) {
     }
 }
 
+// Litet mörkt rum bakom golvklockan. Öppningen nedåt leder tillbaka.
+function ritaHemligtRum() {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#3b2a4a";
+    ctx.fillRect(200, 100, 400, 80);
+    ctx.fillStyle = "#4a4038";
+    ctx.fillRect(200, 180, 400, 400);
+    ctx.fillRect(360, 580, 80, 20);
+    // Ett levande ljus på väggen
+    ctx.fillStyle = "#f4ecd8";
+    ctx.fillRect(250, 120, 10, 30);
+    ctx.fillStyle = "#ffb84a";
+    ctx.fillRect(251, 108, 8, 12);
+
+    ritaPixlar(kistaStangd, mimicFarger, kista.x, kista.y, 5, false);
+    ritaBarn(playerX, playerY, currentDirection);
+    ctx.restore();
+}
+
+// Stridsbild med en sned linje: Char nere till vänster, mimicen uppe till höger.
+function ritaMimicIntro() {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#e8f0d8";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#b8d4a0";
+    ctx.beginPath();
+    ctx.moveTo(0, 450);
+    ctx.lineTo(800, 150);
+    ctx.lineTo(800, 450);
+    ctx.closePath();
+    ctx.fill();
+
+    // Plattformar som figurerna står på
+    ctx.fillStyle = "#8fb878";
+    ctx.beginPath();
+    ctx.ellipse(580, 230, 130, 35, 0, 0, Math.PI * 2);
+    ctx.ellipse(220, 410, 150, 40, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ritaPixlar(kistaMimic, mimicFarger, 580, 180, 8, false);
+    ritaPixlar(barnKroppUpp.concat(benFramSta), barnFarger, 220, 340, 8, false);
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 470, canvas.width, 130);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(20, 485, 760, 100);
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Kistan vaknade! Det var en MIMIC!", 45, 520);
+    ctx.font = "16px Arial";
+    ctx.fillText("Z: slåss!", 45, 560);
+    ctx.restore();
+}
+
+// Hjärtat färgas lila i striden mot mimicen.
+function ritaLilaHjarta(x, y, storlek) {
+    ctx.save();
+    ctx.filter = "hue-rotate(280deg)";
+    drawCharacter(x, y, storlek, heartImage);
+    ctx.restore();
+}
+
+function ritaMimicStrid() {
+    const s = mimicStrid;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.fillText("MIMIC  HÄLSA " + s.hp + "/" + mimicMaxHP, 400, 20);
+    ctx.textAlign = "left";
+    ctx.font = "16px monospace";
+    ctx.fillText("Pajer: " + pieCount, 30, 20);
+    ctx.textAlign = "center";
+
+    if (gameState === "mimic-jakt") {
+        ritaPixlar(kistaMimic, mimicFarger, 400, 110, 6, false);
+        ritaKedjeArena();
+        drawBossStatus(560);
+    } else {
+        ritaPixlar(kistaMimic, mimicFarger, 400, 150, 8, false);
+        ctx.fillStyle = "#fff";
+        ctx.font = "18px Arial";
+        ctx.fillText(gameState === "mimic-slut" ? s.resultat : s.meddelande, 400, 290);
+        drawBossStatus(492);
+        if (gameState === "mimic-meny") ritaMimicMeny();
+        if (gameState === "mimic-matare") drawAttackBar();
+        if (gameState === "mimic-slut") ctx.fillText("Z: fortsätt", 400, 550);
+    }
+    ctx.restore();
+}
+
+function ritaMimicMeny() {
+    const knappar = ["SLÅSS", "FÖREMÅL"];
+    ctx.save();
+    ctx.lineWidth = 3;
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < knappar.length; i++) {
+        const x = 200 + i * 230;
+        const farg = i === mimicStrid.val ? "#ffff00" : "#ff8c20";
+        ctx.strokeStyle = farg;
+        ctx.strokeRect(x, 530, 170, 48);
+        ctx.fillStyle = farg;
+        ctx.fillText(knappar[i], x + 40, 554);
+        if (i === mimicStrid.val) ritaLilaHjarta(x + 20, 554, 20);
+    }
+    ctx.restore();
+}
+
+function ritaKedjeArena() {
+    const s = mimicStrid;
+    const k = mimicKvadrat;
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(k.left, k.top, k.size, k.size);
+
+    // Gyllene kedjor
+    ctx.fillStyle = "#d4a017";
+    for (const kedjaY of mimicKedjor) {
+        for (let x = k.left + 5; x < k.left + k.size - 5; x += 14) {
+            ctx.fillRect(x, kedjaY - 2, 9, 4);
+        }
+    }
+
+    ctx.fillStyle = "#ffe04a";
+    for (const mynt of s.mynt) {
+        ctx.beginPath();
+        ctx.arc(mynt.x, mimicKedjor[mynt.linje], 8, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.save();
+    if (s.skydd > 0) ctx.globalAlpha = 0.5;
+    ritaLilaHjarta(s.hjartaX, mimicKedjor[s.linje], 20);
+    ctx.restore();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.fillText("← →: gå   ↑ ↓: byt kedja   " + Math.ceil(mimicAttackLangd - s.tid), 400, 200);
+}
+
+// Arenan är 300 bred och hela skärmen hög. Hjärtat syns nära botten, så man ser långt framåt.
+function ritaSpring() {
+    const s = mimicStrid;
+    const a = springArena;
+    const radY = rad => 475 - (rad - s.rad) * springRuta;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(a.left, 0, a.bredd, canvas.height);
+    ctx.clip();
+    for (let rad = s.rad - 3; rad <= s.rad + 10; rad++) {
+        const y = radY(rad);
+        ctx.fillStyle = arTryggRad(rad) ? "#2f4a2f" : (rad % 2 === 0 ? "#2a2a33" : "#33333d");
+        ctx.fillRect(a.left, y - springRuta / 2, a.bredd, springRuta);
+        if (!arTryggRad(rad)) {
+            ctx.fillStyle = "#ffe04a";
+            for (let nummer = 0; nummer < bollarPerRad(); nummer++) {
+                ctx.beginPath();
+                ctx.arc(springBollX(rad, s.tid, nummer), y, 12, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+    ritaPixlar(kistaMimic, mimicFarger, 400, radY(s.rad - s.mimicAvstand) + 10, 5, false);
+    ctx.save();
+    if (s.skydd > 0) ctx.globalAlpha = 0.5;
+    ritaLilaHjarta(a.left + springRuta / 2 + s.kolumn * springRuta, radY(s.rad), 20);
+    ctx.restore();
+    ctx.restore();
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(a.left, 2, a.bredd, canvas.height - 4);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("CHAR", 30, 40);
+    ctx.fillText("HÄLSA " + playerHP + "/" + maxHP, 30, 70);
+    ctx.fillText("MIMIC", 580, 40);
+    ctx.fillText("HÄLSA " + mimicStrid.hp + "/" + mimicMaxHP, 580, 70);
+    ctx.fillText("Spring!", 580, 130);
+    ctx.fillText("" + Math.ceil(mimicAttackLangd - s.tid), 580, 160);
+    ctx.font = "14px Arial";
+    ctx.fillText("↑: hoppa uppåt", 30, 520);
+    ctx.fillText("← →: byt ruta", 30, 545);
+    ctx.fillText("↓: backa", 30, 570);
+    ctx.restore();
+}
+
+// Kontoret uppifrån. Sikael står halvt bakom skrivbordet tills striden börjar.
 function ritaKontor() {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
