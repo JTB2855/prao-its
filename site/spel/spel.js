@@ -88,10 +88,12 @@ const bossLunchLines = [
 const sikaelSjunkRutor = 8;
 const sikaelSjunkKolumner = 4;
 const sekunderPerRuta = 0.2;
+// Först tonar stridsbilden över till första sjunkrutan, så att bytet inte syns så mycket.
+const sikaelOvergangTid = 0.4;
 // I DETERMINATION blir Sikael mindre arg när hälsan går ner till de här värdena.
 const sikaelMindreArgVid = 60;
 const sikaelAnnuMindreArgVid = 40;
-const sikaelKnaTid = sikaelSjunkRutor * sekunderPerRuta;
+const sikaelKnaTid = sikaelOvergangTid + sikaelSjunkRutor * sekunderPerRuta;
 const bossFarewellLines = [
     "Jag underskattade dig",
     "Du kommer fortfarande inte få mitt kaffe men du kan få varm choklad om du vill"
@@ -2025,10 +2027,13 @@ function drawSikael(kneeling, context = ctx) {
     if (kneeling) {
         ritaSikaelRuta(sikaelSjunkRutor - 1, context);
     } else {
-        // Under fighten är Sikael sur. I DETERMINATION beror ilskan på hälsan.
-        const bild = boss.determination ? sikaelDeterminationBild(boss.hp) : sikaelSurImage;
-        drawCharacter(400, 145, 190, bild, context);
+        drawCharacter(400, 145, 190, sikaelStridsBild(), context);
     }
+}
+
+// Under fighten är Sikael sur. I DETERMINATION beror ilskan på hälsan.
+function sikaelStridsBild() {
+    return boss.determination ? sikaelDeterminationBild(boss.hp) : sikaelSurImage;
 }
 
 // Jättearg i början av DETERMINATION, sedan mindre och mindre arg när hälsan sjunker.
@@ -2038,9 +2043,19 @@ function sikaelDeterminationBild(hp) {
     return sikaelDeterminationImage;
 }
 
-// tid är sekunder sedan sista slaget. En ruta i taget visas, hackigt som i Undertale.
+// tid är sekunder sedan sista slaget. Först en toning, sedan en ruta i taget, hackigt som i Undertale.
 function ritaSikaelSomFaller(tid) {
-    const ruta = Math.floor(tid / sekunderPerRuta);
+    if (tid < sikaelOvergangTid) {
+        const andel = tid / sikaelOvergangTid;
+        ctx.save();
+        ctx.globalAlpha = 1 - andel;
+        drawCharacter(400, 145, 190, sikaelStridsBild());
+        ctx.globalAlpha = andel;
+        ritaSikaelRuta(0);
+        ctx.restore();
+        return;
+    }
+    const ruta = Math.floor((tid - sikaelOvergangTid) / sekunderPerRuta);
     ritaSikaelRuta(Math.min(sikaelSjunkRutor - 1, ruta));
 }
 

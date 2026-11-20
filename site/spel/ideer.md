@@ -175,6 +175,7 @@
 - 2026-11-20 – gjord (väntar på test): "en ny damage bild. med olika färger. typ röd längst ut och in till grön som gör mest skada". Skademätaren har fyra färgzoner: röd längst ut, sedan orange, gul och grön i mitten. Gäller både Sikael och mimicen.
 - 2026-11-20 – gjord (väntar på test): "byta namnet på sikaels kaffe till inget alls. det ska bara stå något när man tar upp den" – texten ovanför muggen är borttagen; "Du tog Sikaels kaffe!" visas fortfarande vid upplockning.
 - 2026-11-20 – gjord (väntar på test): "lyfta upp den lite? så den är på bänken inte i" – muggen står nu ovanpå bänkskivan.
+- 2026-11-20 – gjord (väntar på test): "när sikael ska gå ner på knä är det en liten annan bild än hur han ser ut annars. så skulle du kunna göra en sorts transition" – stridsbilden tonar över till första sjunkrutan under 0,4 sekunder, sedan kommer rutorna som förut.
 - 2026-11-19 – gjord: "eftersom vi tog hans kaffe tidigare vill han fightas". Utan kaffet: "dörren förblir låst" – texten "Dörren är låst." visas.
 - 2026-11-19 – gjord: "Min karaktär kan heta Char" – CHAR i striden i stället för CHARA.
 - 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.
