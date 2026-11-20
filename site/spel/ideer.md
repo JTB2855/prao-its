@@ -173,6 +173,8 @@
 - 2026-11-20 – gjord: "kan du göra en k fusk igen för mimicen?" – K i mimicens meny sätter mimicens hälsa till 5.
 - 2026-11-20 – gjord (väntar på test): "när man dödat sikael borde det vara en cool vinst bild eller nåt." Efter stoftet visas en vinstbild: guldtexten DU VANN!, Char i mitten, en röd mugg med varm choklad och blinkande stjärnor. Z startar om hela spelet.
 - 2026-11-20 – gjord (väntar på test): "en ny damage bild. med olika färger. typ röd längst ut och in till grön som gör mest skada". Skademätaren har fyra färgzoner: röd längst ut, sedan orange, gul och grön i mitten. Gäller både Sikael och mimicen.
+- 2026-11-20 – gjord (väntar på test): "byta namnet på sikaels kaffe till inget alls. det ska bara stå något när man tar upp den" – texten ovanför muggen är borttagen; "Du tog Sikaels kaffe!" visas fortfarande vid upplockning.
+- 2026-11-20 – gjord (väntar på test): "lyfta upp den lite? så den är på bänken inte i" – muggen står nu ovanpå bänkskivan.
 - 2026-11-19 – gjord: "eftersom vi tog hans kaffe tidigare vill han fightas". Utan kaffet: "dörren förblir låst" – texten "Dörren är låst." visas.
 - 2026-11-19 – gjord: "Min karaktär kan heta Char" – CHAR i striden i stället för CHARA.
 - 2026-11-19 – ersatt: "24 stillframes emellan" Sikaels två bilder med hjälp av AI, "lite mer som en video innan han perishar". Eleven valde i stället en övergång med kod.

@@ -7,7 +7,7 @@ bgImage.src = "images/bg_1.png";
 
 const kitchen = { x: 98, y: 100, width: 604, height: 500 };
 const pie = { x: 410, y: 300, collected: false };
-const kaffe = { x: 500, y: 318, collected: false };
+const kaffe = { x: 500, y: 290, collected: false };
 let pieCount = 0;
 let pickupMessageTime = 0;
 let pickupMessage = "";
@@ -2256,11 +2256,6 @@ function ritaPajbitar() {
 
 function ritaKaffe() {
     ritaPixlar(kaffePixlar, kaffeFarger, kaffe.x, kaffe.y, 3, false);
-    ctx.fillStyle = "#3a2a10";
-    ctx.font = "bold 13px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.fillText("Sikaels kaffe", kaffe.x, kaffe.y - 20);
 }
 
 function drawFarmorRoom() {
